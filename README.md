@@ -111,6 +111,14 @@ npm run build:web  # exporta la web estática a dist/ (y mueve las fuentes fuera
 
 Builds nativos para tiendas: `npx eas-cli@latest build -p ios|android`.
 
+## Publicar en las tiendas
+
+Guía paso a paso, textos de las fichas (ES/EN), capturas, gráficos y respuestas a los cuestionarios en [`store/README.md`](store/README.md).
+
+- Builds y envío con EAS (`eas.json`): perfiles `development`, `preview` (APK / build interna) y `production`.
+- Política de privacidad: `public/privacy.html`, publicada en `/privacy.html` junto a la web.
+- Capturas: `npm run build:web && npm run store:assets` (requiere Playwright).
+
 ## Estructura
 
 ```

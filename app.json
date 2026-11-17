@@ -13,6 +13,9 @@
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png",
         "tinted": "./assets/icon-tinted.png"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -22,7 +25,12 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.voleystats.clipeoscoreboard"
+      "package": "com.voleystats.clipeoscoreboard",
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -47,6 +55,7 @@
           }
         }
       ]
-    ]
+    ],
+    "description": "Marcador de voleibol minimalista: n\u00fameros a pantalla completa, gestos configurables y modos de puntuaci\u00f3n."
   }
 }

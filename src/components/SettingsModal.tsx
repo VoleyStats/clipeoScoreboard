@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { DEFAULT_CONFIG, GESTURES, gestureRules, newRuleId, resolveAction } from '../logic';
 import type { Config, Gesture, GestureAction, ScoringRule, Team, TeamId } from '../types';
 import { F } from '../theme';
@@ -12,6 +12,8 @@ interface Props {
   onChange: (c: Config) => void;
   onClose: () => void;
 }
+
+export const PRIVACY_URL = 'https://clipeo-scoreboard.vercel.app/privacy.html';
 
 const GESTURE_LABELS: Record<Gesture, { label: string; hint: string }> = {
   tap: { label: 'Tocar', hint: 'Un toque corto' },
@@ -174,12 +176,21 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
       </Section>
 
       <Btn label="Restaurar ajustes por defecto" kind="danger" onPress={() => onChange(DEFAULT_CONFIG)} />
+
+      <Text
+        style={styles.link}
+        accessibilityRole="link"
+        onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})}
+      >
+        Política de privacidad
+      </Text>
     </Popup>
   );
 }
 
 const styles = StyleSheet.create({
   help: { color: C.muted, fontFamily: F.regular, fontSize: 13, lineHeight: 19, paddingVertical: 10 },
+  link: { color: C.muted, fontFamily: F.regular, fontSize: 13, textAlign: 'center', textDecorationLine: 'underline', marginTop: 18 },
   gesture: { borderTopWidth: 1, borderTopColor: C.line },
   warn: { color: C.volt, fontFamily: F.medium, fontSize: 13, lineHeight: 19, paddingBottom: 12 },
   rule: { borderTopWidth: 1, borderTopColor: C.line, paddingVertical: 6 },
