@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
@@ -28,10 +29,28 @@ import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { SpaceGrotesk_600SemiBold } from '@expo-google-fonts/space-grotesk/600SemiBold';
 import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
 
+// La splash nativa se mantiene hasta que cargan las fuentes y el partido guardado.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+const SPLASH = {
+  light: { bg: '#E1E1E1', logo: require('./assets/splash-icon.png') },
+  dark: { bg: '#111919', logo: require('./assets/splash-icon-dark.png') },
+};
+
+/** En web no hay splash nativa: se muestra el mismo logo mientras carga. */
+function LoadingScreen() {
+  const s = SPLASH[useColorScheme() === 'dark' ? 'dark' : 'light'];
+  return (
+    <View style={[styles.loading, { backgroundColor: s.bg }]}>
+      {Platform.OS === 'web' && <Image source={s.logo} style={styles.loadingLogo} accessibilityLabel="Clipeo Scoreboard" />}
+    </View>
+  );
+}
+
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   // Evita el "pull to refresh" y el rebote del navegador al deslizar hacia abajo.
   const style = document.createElement('style');
-  style.textContent = 'html,body{overscroll-behavior:none;overflow:hidden;background:#070A12}';
+  style.textContent = 'html,body{overscroll-behavior:none;overflow:hidden;background:#E1E1E1}@media (prefers-color-scheme:dark){html,body{background:#111919}}';
   document.head.appendChild(style);
 }
 
@@ -69,6 +88,11 @@ export default function App() {
     });
   }, []);
 
+  const loaded = ready && (fontsLoaded || !!fontError);
+  useEffect(() => {
+    if (loaded) SplashScreen.hideAsync().catch(() => {});
+  }, [loaded]);
+
   useEffect(() => { if (ready) saveConfig(config); }, [config, ready]);
   useEffect(() => { if (ready) saveState(state); }, [state, ready]);
 
@@ -86,7 +110,7 @@ export default function App() {
   };
 
   // Si las fuentes fallan se usa la del sistema
-  if (!fontsLoaded && !fontError) return <View style={styles.root} />;
+  if (!loaded) return <LoadingScreen />;
 
   const landscape = width >= height;
   const panelW = landscape ? width / 2 : width;
@@ -175,6 +199,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingLogo: { width: 180, height: 180 },
   center: {
     position: 'absolute', bottom: 14, left: 0, right: 0,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,

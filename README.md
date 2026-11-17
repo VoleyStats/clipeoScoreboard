@@ -62,7 +62,16 @@ La paleta se aplica a la interfaz (menús, popups, botones); los colores de los 
 
 Tipografías: **Space Grotesk** (números y títulos) e **Inter** (interfaz).
 
-El icono combina el zigzag de VoleyStats, el balón de Clipeo y las dos mitades del marcador.
+### Icono
+
+El marcador partido en dos con la mitad del equipo que puntúa en azul. Fuentes SVG en `assets/brand/`.
+
+| Recurso | Claro | Oscuro |
+|---|---|---|
+| Icono iOS (`ios.icon`) | `icon.png` | `icon-dark.png` (+ `icon-tinted.png`) |
+| Icono Android adaptativo | `android-icon-foreground.png` sobre `#E1E1E1` | `android-icon-monochrome.png` (iconos temáticos) |
+| Splash (`expo-splash-screen`) | `splash-icon.png` sobre `#E1E1E1` | `splash-icon-dark.png` sobre `#111919` |
+| Web | `favicon.png` y logo en la pantalla de carga | logo oscuro si el sistema está en modo oscuro |
 
 ## Desarrollo
 
