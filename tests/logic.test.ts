@@ -128,30 +128,10 @@ test('jugada especial: rompe la racha del rival pero no suma progreso propio', (
   assert.equal(s.activeRuleId, 'three-for-one');
 });
 
-test('acción con un modo borrado se trata como sumar', () => {
+test('acción con modo borrado o de varias jugadas se trata como sumar', () => {
   assert.deepEqual(act('rule:no-existe'), { kind: 'point' });
+  assert.deepEqual(act('rule:three-for-one'), { kind: 'point' });
   assert.equal(act('rule:double').kind, 'rule');
-});
-
-test('gesto con un modo de varias jugadas: lo activa y cuenta la jugada', () => {
-  let s = applyGesture(initialState(cfg), cfg, 'a', act('rule:three-for-one'));
-  assert.equal(s.activeRuleId, 'three-for-one');
-  assert.deepEqual(s.progress, { a: 1, b: 0 });
-  s = applyGesture(applyGesture(s, cfg, 'a', act('rule:three-for-one')), cfg, 'a', act('rule:three-for-one'));
-  assert.deepEqual(s.points, { a: 1, b: 0 });
-  assert.equal(s.activeRuleId, 'three-for-one');
-});
-
-test('gesto con el modo por defecto suma 1 aunque haya otro modo activo, sin cambiarlo', () => {
-  const s = applyGesture(selectRule(initialState(cfg), 'three-for-one'), cfg, 'a', act('rule:normal'));
-  assert.equal(s.points.a, 1);
-  assert.equal(s.activeRuleId, 'three-for-one');
-});
-
-test('gesto con un modo propio de 1 jugada (p. ej. triple)', () => {
-  const triple = { id: 'triple', name: 'Triple', ralliesRequired: 1, pointsAwarded: 3, consecutive: false, once: false };
-  const c = { ...cfg, rules: [...cfg.rules, triple] };
-  assert.equal(applyGesture(initialState(c), c, 'b', act('rule:triple', c)).points.b, 3);
 });
 
 test('jugada especial respeta el fin de set automático', () => {

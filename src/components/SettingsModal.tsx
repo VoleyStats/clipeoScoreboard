@@ -140,19 +140,15 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
 
       <Section title="Gestos">
         <Text style={styles.help}>
-          Elige qué hace cada gesto sobre el marcador de un equipo. Puedes asignar cualquiera de tus modos: los de
-          1 jugada suman sus puntos una vez sin cambiar el modo activo; los de varias jugadas se activan y cuentan
-          la jugada. El círculo de sets siempre suma al tocar y resta al deslizar hacia abajo.
+          Elige qué hace cada gesto sobre el marcador de un equipo. Los modos de 1 jugada se aplican una sola vez
+          sin cambiar el modo activo. El círculo de sets siempre suma al tocar y resta al deslizar hacia abajo.
         </Text>
         {GESTURES.map((g) => {
           const resolved = resolveAction(config, config.gestures[g]);
           const current: GestureAction = resolved.kind === 'rule' ? `rule:${resolved.rule.id}` : resolved.kind;
           const options: { value: GestureAction; label: string }[] = [
-            { value: 'point', label: 'Sumar (modo activo)' },
-            ...gestureRules(config).map((r) => ({
-              value: `rule:${r.id}` as GestureAction,
-              label: `${r.name} · ${r.ralliesRequired === 1 ? `+${r.pointsAwarded}` : `${r.ralliesRequired}→+${r.pointsAwarded}`}`,
-            })),
+            { value: 'point', label: 'Sumar' },
+            ...gestureRules(config).map((r) => ({ value: `rule:${r.id}` as GestureAction, label: `${r.name} · +${r.pointsAwarded}` })),
             { value: 'minus', label: 'Restar 1' },
             { value: 'undo', label: 'Deshacer' },
             { value: 'none', label: 'Nada' },

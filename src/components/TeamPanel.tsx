@@ -64,11 +64,7 @@ export function TeamPanel(p: Props) {
     if (a.kind === 'none') continue; // sin manejador: el gesto no hace nada (ni espera)
     handlers[g] = () => {
       if (a.kind === 'point') pulse(0.16);
-      else if (a.kind === 'rule') {
-        pulse(0.3);
-        // 1 jugada: "+N". Varias jugadas: el progreso ya se ve en los puntos bajo el número
-        if (a.rule.ralliesRequired === 1) burst(`+${a.rule.pointsAwarded}`);
-      }
+      else if (a.kind === 'rule') { pulse(0.3); burst(`+${a.rule.pointsAwarded}`); }
       else if (a.kind === 'minus') pulse(0.08);
       else if (a.kind === 'undo') { pulse(0.08); burst('↶'); }
       p.onGesture(g);
