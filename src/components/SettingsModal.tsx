@@ -148,7 +148,7 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
           const current: GestureAction = resolved.kind === 'rule' ? `rule:${resolved.rule.id}` : resolved.kind;
           const options: { value: GestureAction; label: string }[] = [
             { value: 'point', label: 'Sumar' },
-            ...gestureRules(config).map((r) => ({ value: `rule:${r.id}` as GestureAction, label: `${r.name} · +${r.pointsAwarded}` })),
+            ...gestureRules(config).map((r) => ({ value: `rule:${r.id}` as GestureAction, label: r.name })),
             { value: 'minus', label: 'Restar 1' },
             { value: 'undo', label: 'Deshacer' },
             { value: 'none', label: 'Nada' },
