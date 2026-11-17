@@ -5,14 +5,25 @@ Todo lo necesario para App Store y Google Play: textos, capturas, gráficos y re
 | Qué | Dónde |
 |---|---|
 | Textos de la ficha (ES / EN) | [`listing-es.md`](listing-es.md), [`listing-en.md`](listing-en.md) |
-| Capturas iPhone 6,9" (2868×1320 / 1320×2868) | `screenshots/ios-6.9/` |
-| Capturas iPad 13" (2752×2064 / 2064×2752) | `screenshots/ipad-13/` |
-| Capturas móvil Android (1920×1080 / 1080×1920) | `screenshots/android-phone/` |
+| Capturas iPhone 6,9" (2868×1320) | `screenshots/ios-6.9/01.png` … `06.png` |
+| Capturas iPad 13" (2752×2064) | `screenshots/ipad-13/01.png` … `06.png` |
+| Capturas móvil Android (1920×1080) | `screenshots/android-phone/01.png` … `06.png` |
+| Vista previa de cada secuencia | `screenshots/<dispositivo>/panorama.png` (no se sube) |
+| Capturas sueltas de la app (material) | `screenshots/raw/<dispositivo>/` |
 | Imagen destacada Google Play (1024×500) | `graphics/play-feature-graphic-1024x500.png` |
 | Icono Google Play (512×512) | `graphics/play-icon-512.png` |
 | Política de privacidad | https://clipeo-scoreboard.vercel.app/privacy.html (fuente: `public/privacy.html`) |
 
-Las capturas se regeneran con `npm run build:web && node scripts/store-assets.cjs` (usa equipos de ejemplo ficticios).
+Las capturas son una **secuencia continua**: seis pantallas que juntas forman una sola imagen (una línea azul las une y baja en zigzag por cada unión). **Súbelas en orden, de `01` a `06`**, para que la secuencia se lea seguida en la tienda:
+
+1. Todo el resultado, a pantalla completa
+2. Toca para sumar. Desliza para corregir.
+3. Tus propios modos de puntuación
+4. Cada gesto hace lo que tú elijas
+5. Tus equipos, tus colores
+6. Cierre: logo · Gratis · Sin cuentas · Sin anuncios
+
+Se regeneran con `npm run build:web && npm run store:assets` (equipos de ejemplo ficticios). Los textos están en `STORY`, dentro de `scripts/store-assets.cjs`.
 
 ---
 
@@ -112,8 +123,8 @@ All data is stored locally on the device.
 | Título / descripción breve / completa | [`listing-es.md`](listing-es.md) |
 | Icono | `graphics/play-icon-512.png` |
 | Imagen destacada | `graphics/play-feature-graphic-1024x500.png` |
-| Capturas de teléfono | `screenshots/android-phone/` (entre 2 y 8) |
-| Capturas de tablet (opcional) | `screenshots/ipad-13/` sirven también para tablet de 10" |
+| Capturas de teléfono | `screenshots/android-phone/01.png` … `06.png`, en orden |
+| Capturas de tablet (opcional) | `screenshots/ipad-13/01.png` … `06.png` sirven también para tablet de 10" |
 | Categoría | Deportes |
 | Correo de contacto | hola@clipeostats.com |
 | Sitio web | https://clipeostats.com |
