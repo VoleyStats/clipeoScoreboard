@@ -14,6 +14,7 @@ export const DEFAULT_CONFIG: Config = {
     b: { name: 'Visitante', bg: '#E63946', fg: '#FFFFFF' },
   },
   rules: DEFAULT_RULES,
+  longPressRuleId: 'double',
   showNames: true,
   showSets: true,
   haptics: true,
@@ -92,6 +93,32 @@ export function winRally(state: MatchState, config: Config, team: TeamId): Match
     next = { ...next, activeRuleId: defaultId, progress: { a: 0, b: 0 } };
   }
   return checkSetWon(next, config);
+}
+
+/** Modos que se pueden usar al mantener pulsado: los de una sola jugada, salvo el de por defecto. */
+export function longPressRules(config: Config): ScoringRule[] {
+  return config.rules.slice(1).filter((r) => r.ralliesRequired === 1);
+}
+
+/** El modo de "mantener pulsado", o null si está desactivado o ya no es válido. */
+export function longPressRule(config: Config): ScoringRule | null {
+  return longPressRules(config).find((r) => r.id === config.longPressRuleId) ?? null;
+}
+
+/**
+ * Mantener pulsado: el equipo gana UNA jugada que vale los puntos del modo elegido,
+ * sin cambiar el modo activo. Cuenta como jugada perdida para el rival (racha "seguidas"),
+ * pero no suma progreso al modo activo porque se ha puntuado con otra regla.
+ */
+export function winSpecialRally(state: MatchState, config: Config, team: TeamId): MatchState {
+  const rule = longPressRule(config);
+  if (!rule) return winRally(state, config, team);
+  const progress = { ...state.progress };
+  if (activeRule(state, config).consecutive) progress[other(team)] = 0;
+  return checkSetWon(
+    { ...state, progress, points: { ...state.points, [team]: state.points[team] + rule.pointsAwarded } },
+    config,
+  );
 }
 
 /** Swipe down en el marcador: deshace progreso pendiente o resta un punto. */

@@ -1,5 +1,5 @@
-import { Platform, StyleSheet, Text, View } from 'react-native';
-import { DEFAULT_CONFIG, newRuleId } from '../logic';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { DEFAULT_CONFIG, longPressRules, newRuleId } from '../logic';
 import type { Config, ScoringRule, Team, TeamId } from '../types';
 import { F } from '../theme';
 import { Popup } from './Popup';
@@ -99,8 +99,28 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
       <Section title="Gestos">
         <Text style={styles.help}>
           Toca un marcador para sumar · Desliza hacia abajo para restar.{'\n'}
-          Lo mismo sobre el círculo de sets.
+          Lo mismo sobre el círculo de sets.{'\n'}
+          Mantén pulsado un marcador para sumar una jugada especial sin cambiar el modo activo.
         </Text>
+        <Row label="Mantener pulsado" hint="Solo modos de 1 jugada" />
+        <View style={styles.chips}>
+          {[{ id: null as string | null, name: 'Desactivado', pts: 0 }, ...longPressRules(config).map((r) => ({ id: r.id as string | null, name: r.name, pts: r.pointsAwarded }))].map((o) => {
+            const active = (longPressRules(config).some((r) => r.id === config.longPressRuleId) ? config.longPressRuleId : null) === o.id;
+            return (
+              <Pressable
+                key={o.id ?? 'off'}
+                onPress={() => set('longPressRuleId', o.id)}
+                style={[styles.chip, active && styles.chipActive]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  {o.name}{o.id ? ` · +${o.pts}` : ''}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </Section>
 
       <Btn label="Restaurar ajustes por defecto" kind="danger" onPress={() => onChange(DEFAULT_CONFIG)} />
@@ -110,5 +130,10 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
 
 const styles = StyleSheet.create({
   help: { color: C.muted, fontFamily: F.regular, fontSize: 13, lineHeight: 19, paddingVertical: 10 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 14 },
+  chip: { borderWidth: 1, borderColor: C.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
+  chipActive: { backgroundColor: C.volt, borderColor: C.volt },
+  chipText: { color: C.text, fontFamily: F.medium, fontSize: 14 },
+  chipTextActive: { color: C.onVolt },
   rule: { borderTopWidth: 1, borderTopColor: C.line, paddingVertical: 6 },
 });

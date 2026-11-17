@@ -11,6 +11,8 @@ La pantalla principal son solo los números, a pantalla completa. En horizontal 
 | Marcador de un equipo | Suma (según la jugada activa) | Resta 1 punto (o deshace progreso pendiente) |
 | Círculo de sets | Suma 1 set (y reinicia los puntos, configurable) | Resta 1 set |
 
+**Mantener pulsado** un marcador suma una jugada especial (por defecto «Punto doble», +2) sin cambiar el modo activo. Se elige en Ajustes → Gestos entre los modos de 1 jugada, o se desactiva. A diferencia de tocar varias veces, cuenta como **una sola jugada**: con modos de progreso («3 seguidas = 1») no suma progreso y sí rompe la racha del rival.
+
 Abajo en el centro:
 - **Píldora de modo**: elige el modo de puntuación activo o crea uno nuevo (**+ Nuevo modo**).
 - **•••**: fila de iconos:
@@ -52,7 +54,9 @@ Con [Reanimated](https://docs.swmansion.com/react-native-reanimated/) (iOS, Andr
 - **Número**: rueda hacia arriba al sumar y hacia abajo al restar (`src/components/AnimatedNumber.tsx`).
 - **Toque**: destello breve sobre la mitad del equipo.
 - **Sets**: el círculo late al cambiar; los puntos de progreso se rellenan con un rebote.
-- **Colores y cambio de lados**: transición suave del color de fondo; al cambiar de lados cada panel se funde hacia el otro equipo.
+- **Colores**: transición suave del color de fondo.
+- **Cambio de lados**: las dos mitades se encogen como tarjetas y se cruzan en sentidos opuestos, una por encima de la otra.
+- **Jugada especial**: «+2» flotante y destello más intenso al mantener pulsado.
 - **Menús y ventanas**: entrada con un leve escalado; los iconos del menú, escalonados.
 
 ## Identidad visual

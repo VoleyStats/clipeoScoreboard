@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
-import Animated, { FadeInDown, LinearTransition, ZoomIn } from 'react-native-reanimated';
+import Animated, { Easing, FadeInDown, LinearTransition, useSharedValue, withTiming, ZoomIn } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
@@ -14,7 +14,7 @@ import { SettingsModal } from './src/components/SettingsModal';
 import { TeamPanel } from './src/components/TeamPanel';
 import { isValidColor } from './src/components/ui';
 import {
-  DEFAULT_CONFIG, activeRule, addSet, closeSet, initialState, matchWinner, reconcile, removePoint, removeSet,
+  DEFAULT_CONFIG, activeRule, addSet, closeSet, initialState, longPressRule, winSpecialRally, matchWinner, reconcile, removePoint, removeSet,
   resetMatch, selectRule, winRally,
 } from './src/logic';
 import { load, saveConfig, saveState } from './src/storage';
@@ -71,6 +71,8 @@ export default function App() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [state, setState] = useState<MatchState>(() => initialState(DEFAULT_CONFIG));
   const [ready, setReady] = useState(false);
+  /** 0 = equipos en su lado, 1 = intercambiados. Anima el cruce de las tarjetas. */
+  const swapPos = useSharedValue(0);
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold,
     SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold,
@@ -83,6 +85,7 @@ export default function App() {
 
   useEffect(() => {
     load().then(({ config, state }) => {
+      swapPos.set(state.swapped ? 1 : 0);
       setConfig(config);
       setState(state);
       setReady(true);
@@ -98,9 +101,11 @@ export default function App() {
   useEffect(() => { if (ready) saveState(state); }, [state, ready]);
 
   const buzz = useCallback(
-    (strong = false) => {
+    (strong: boolean | 'heavy' = false) => {
       if (!config.haptics || Platform.OS === 'web') return;
-      Haptics.impactAsync(strong ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const style = strong === 'heavy' ? Haptics.ImpactFeedbackStyle.Heavy
+        : strong ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light;
+      Haptics.impactAsync(style).catch(() => {});
     },
     [config.haptics],
   );
@@ -118,18 +123,28 @@ export default function App() {
   const panelH = landscape ? height : height / 2;
   const rule = activeRule(state, config);
   const winner = matchWinner(state, config);
-  const order: TeamId[] = state.swapped ? ['b', 'a'] : ['a', 'b'];
+  const special = longPressRule(config);
+  const toggleSwap = () => {
+    const next = !state.swapped;
+    swapPos.set(withTiming(next ? 1 : 0, { duration: 620, easing: Easing.inOut(Easing.cubic) }));
+    setState((s) => ({ ...s, swapped: next }));
+  };
 
   return (
     <SafeAreaProvider>
       <KeepAwake />
       <StatusBar hidden />
       <View style={[styles.root, { flexDirection: landscape ? 'row' : 'column' }]}>
-        {/* Clave por posición (no por equipo): al cambiar de lado, cada panel se queda en su sitio
-            y anima el color y el número hacia los del otro equipo. */}
-        {order.map((id, slot) => (
+        {/* Siempre en el mismo orden: el cambio de lado lo hace la animación (swapPos). */}
+        {(['a', 'b'] as TeamId[]).map((id) => (
           <TeamPanel
-            key={slot}
+            key={id}
+            swap={swapPos}
+            swapDir={id === 'a' ? 1 : -1}
+            swapDistance={landscape ? panelW : panelH}
+            horizontal={landscape}
+            onSpecial={special ? () => { buzz('heavy'); setState((s) => winSpecialRally(s, config, id)); } : undefined}
+            specialLabel={special ? `+${special.pointsAwarded}` : undefined}
             team={safeTeam(config.teams[id], DEFAULT_CONFIG.teams[id])}
             points={state.points[id]}
             sets={state.sets[id]}
@@ -194,7 +209,7 @@ export default function App() {
         onClose={() => setMenuOpen(false)}
         onCloseSet={() => setState(closeSet)}
         onNewMatch={() => setState((s) => resetMatch(s, config))}
-        onSwap={() => setState((s) => ({ ...s, swapped: !s.swapped }))}
+        onSwap={toggleSwap}
         onSettings={() => setSettingsOpen(true)}
       />
       <SettingsModal
@@ -212,7 +227,7 @@ const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingLogo: { width: 180, height: 180 },
   center: {
-    position: 'absolute', bottom: 14, left: 0, right: 0,
+    position: 'absolute', bottom: 14, left: 0, right: 0, zIndex: 10,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
   },
   pill: {

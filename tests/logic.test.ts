@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet,
+  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet, winSpecialRally,
 } from '../src/logic';
 import type { Config } from '../src/types';
 
@@ -99,4 +99,33 @@ test('cerrar set: suma set al que va ganando y reinicia puntos', () => {
   const tie = closeSet({ ...initialState(cfg), points: { a: 7, b: 7 } });
   assert.deepEqual(tie.sets, { a: 0, b: 0 });
   assert.deepEqual(tie.points, { a: 0, b: 0 });
+});
+
+test('mantener pulsado: suma el modo elegido sin cambiar el modo activo', () => {
+  const s = winSpecialRally(initialState(cfg), cfg, 'a');
+  assert.equal(s.points.a, 2);
+  assert.equal(s.activeRuleId, 'normal');
+});
+
+test('mantener pulsado: rompe la racha del rival pero no suma progreso propio', () => {
+  let s = selectRule(initialState(cfg), 'three-for-one');
+  s = winRally(winRally(s, cfg, 'b'), cfg, 'b');
+  s = winRally(s, cfg, 'a');
+  s = winSpecialRally(s, cfg, 'a');
+  assert.deepEqual(s.progress, { a: 1, b: 0 });
+  assert.equal(s.points.a, 2);
+  assert.equal(s.activeRuleId, 'three-for-one');
+});
+
+test('mantener pulsado desactivado o modo inválido: suma como un toque', () => {
+  const off = { ...cfg, longPressRuleId: null };
+  assert.equal(winSpecialRally(initialState(off), off, 'a').points.a, 1);
+  const bad = { ...cfg, longPressRuleId: 'three-for-one' }; // 3 jugadas: no válido
+  assert.equal(winSpecialRally(initialState(bad), bad, 'a').points.a, 1);
+});
+
+test('mantener pulsado respeta el fin de set automático', () => {
+  const c = { ...cfg, autoSets: true };
+  const s = winSpecialRally({ ...initialState(c), points: { a: 23, b: 20 } }, c, 'a');
+  assert.deepEqual(s.sets, { a: 1, b: 0 });
 });

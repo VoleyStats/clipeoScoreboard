@@ -30,6 +30,8 @@ export interface Config {
   teams: Record<TeamId, Team>;
   /** La primera regla es la regla por defecto */
   rules: ScoringRule[];
+  /** Modo que se aplica una vez al mantener pulsado (solo modos de 1 jugada). null = desactivado */
+  longPressRuleId: string | null;
   showNames: boolean;
   showSets: boolean;
   haptics: boolean;
