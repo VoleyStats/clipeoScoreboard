@@ -12,11 +12,22 @@ test('tap normal suma 1', () => {
   assert.deepEqual(s.points, { a: 1, b: 0 });
 });
 
-test('swipe down resta 1 sin bajar de 0', () => {
+test('restar permite puntos negativos', () => {
   let s = winRally(initialState(cfg), cfg, 'a');
   s = removePoint(s, 'a');
   s = removePoint(s, 'a');
-  assert.equal(s.points.a, 0);
+  s = removePoint(s, 'a');
+  assert.equal(s.points.a, -2);
+  assert.equal(winRally(s, cfg, 'a').points.a, -1);
+});
+
+test('los sets no bajan de 0', () => {
+  assert.equal(removeSet(initialState(cfg), 'a').sets.a, 0);
+});
+
+test('cerrar set con puntos negativos: gana el que tiene más', () => {
+  const s = closeSet({ ...initialState(cfg), points: { a: -3, b: -1 } });
+  assert.deepEqual(s.sets, { a: 0, b: 1 });
 });
 
 test('punto doble suma 2 y vuelve a la regla normal', () => {

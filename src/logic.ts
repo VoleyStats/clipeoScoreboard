@@ -154,12 +154,12 @@ export function migrateConfig(saved: Record<string, unknown>): Partial<Config> {
   return out;
 }
 
-/** Swipe down en el marcador: deshace progreso pendiente o resta un punto. */
+/** Restar: deshace progreso pendiente o resta un punto. Los puntos pueden ser negativos. */
 export function removePoint(state: MatchState, team: TeamId): MatchState {
   if (state.progress[team] > 0) {
     return { ...state, progress: { ...state.progress, [team]: state.progress[team] - 1 } };
   }
-  return { ...state, points: { ...state.points, [team]: Math.max(0, state.points[team] - 1) } };
+  return { ...state, points: { ...state.points, [team]: state.points[team] - 1 } };
 }
 
 export function addSet(state: MatchState, config: Config, team: TeamId): MatchState {

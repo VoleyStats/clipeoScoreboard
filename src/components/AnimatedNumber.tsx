@@ -60,7 +60,7 @@ export function AnimatedNumber({ value, style, lineHeight }: Props) {
           allowFontScaling={false}
           numberOfLines={1}
         >
-          {shown.prev}
+          {format(shown.prev)}
         </Animated.Text>
       )}
       <Animated.Text
@@ -70,11 +70,14 @@ export function AnimatedNumber({ value, style, lineHeight }: Props) {
         allowFontScaling={false}
         numberOfLines={1}
       >
-        {shown.value}
+        {format(shown.value)}
       </Animated.Text>
     </View>
   );
 }
+
+/** Signo menos tipográfico (−) en lugar del guion: centrado con los dígitos. */
+const format = (n: number) => (n < 0 ? `\u2212${-n}` : String(n));
 
 const styles = StyleSheet.create({
   layer: { position: 'absolute', left: 0, right: 0, top: 0 },
