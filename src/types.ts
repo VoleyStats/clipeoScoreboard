@@ -37,12 +37,15 @@ export interface Config {
   haptics: boolean;
   /** Al sumar un set (manual) los puntos vuelven a 0 */
   resetPointsOnSet: boolean;
-  /** Detecta automáticamente el fin de set */
+  /** Final de set automático: suma el set al llegar a pointsPerSet (con winByTwo) */
   autoSets: boolean;
   pointsPerSet: number;
-  decidingSetPoints: number;
-  setsToWin: number;
   winByTwo: boolean;
+  /** Final de partido: hay ganador al llegar a setsToWin; activa el set decisivo */
+  matchEnd: boolean;
+  setsToWin: number;
+  /** Puntos del set decisivo (solo con final de set automático y final de partido) */
+  decidingSetPoints: number;
 }
 
 export interface MatchState {

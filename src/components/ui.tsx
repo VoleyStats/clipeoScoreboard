@@ -29,7 +29,7 @@ export function Row({ label, hint, children }: { label: string; hint?: string; c
 export function Toggle({ label, hint, value, onChange }: { label: string; hint?: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <Row label={label} hint={hint}>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: C.brand, false: C.line }} thumbColor="#fff" {...({ activeThumbColor: "#fff" } as object)} />
+      <Switch value={value} onValueChange={onChange} accessibilityLabel={label} trackColor={{ true: C.brand, false: C.line }} thumbColor="#fff" {...({ activeThumbColor: "#fff" } as object)} />
     </Row>
   );
 }
@@ -40,6 +40,39 @@ export function Stepper({ value, onChange, min = 1, max = 99 }: { value: number;
       <Btn small label="−" onPress={() => onChange(Math.max(min, value - 1))} />
       <Text style={s.stepValue}>{value}</Text>
       <Btn small label="+" onPress={() => onChange(Math.min(max, value + 1))} />
+    </View>
+  );
+}
+
+/**
+ * Número con accesos rápidos (p. ej. 15 / 21 / 25) y ajuste fino con −/+.
+ * Va en su propia fila, debajo de la etiqueta, para que quepa en móvil.
+ */
+export function NumberPicker({ label, hint, value, onChange, presets, min = 1, max = 99 }: {
+  label: string; hint?: string; value: number; onChange: (v: number) => void; presets: number[]; min?: number; max?: number;
+}) {
+  return (
+    <View style={s.picker}>
+      <Row label={label} hint={hint}>
+        <Stepper value={value} onChange={onChange} min={min} max={max} />
+      </Row>
+      <View style={s.presets}>
+        {presets.map((n) => {
+          const active = n === value;
+          return (
+            <Pressable
+              key={n}
+              onPress={() => onChange(n)}
+              style={[s.preset, active && s.presetActive]}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`${label}: ${n}`}
+            >
+              <Text style={[s.presetText, active && s.presetTextActive]}>{n}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -77,6 +110,12 @@ export { isValidColor } from '../color';
 export { ColorPicker } from './ColorPicker';
 
 const s = StyleSheet.create({
+  picker: { paddingBottom: 12 },
+  presets: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  preset: { minWidth: 52, alignItems: 'center', borderWidth: 1, borderColor: C.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
+  presetActive: { backgroundColor: C.volt, borderColor: C.volt },
+  presetText: { color: C.text, fontFamily: F.semibold, fontSize: 15, fontVariant: ['tabular-nums'] },
+  presetTextActive: { color: C.onVolt },
   section: { marginBottom: 24 },
   sectionTitle: { color: C.muted, fontSize: 12, fontFamily: F.bold, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8, marginLeft: 4 },
   card: { backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.line, paddingHorizontal: 14, paddingVertical: 4 },

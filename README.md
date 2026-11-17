@@ -43,7 +43,8 @@ Cuando N > 1, bajo el número aparecen puntos que muestran el progreso de cada e
 - Nombre, color de fondo y color de texto de cada equipo: cualquier color (selector de tono / saturación / luz, código hex o colores rápidos).
 - Modos de puntuación: editar, añadir y borrar.
 - Mostrar/ocultar nombres y sets, vibración.
-- Fin de set automático (puntos por set, set decisivo, ganar por 2) y sets para ganar el partido.
+- **Final de set** (desactivado por defecto): al activarlo, el set se suma solo al llegar a los puntos elegidos (15 / 21 / 25 o cualquier otro) y, opcionalmente, con 2 de diferencia.
+- **Final de partido** (desactivado por defecto): al activarlo se eligen los sets para ganar (al mejor de N), se marca el ganador con 🏆 y, si el final de set es automático, los puntos del set decisivo.
 
 Todo se guarda en el dispositivo; la pantalla no se apaga mientras el marcador está abierto.
 

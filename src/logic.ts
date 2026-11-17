@@ -21,9 +21,10 @@ export const DEFAULT_CONFIG: Config = {
   resetPointsOnSet: true,
   autoSets: false,
   pointsPerSet: 25,
-  decidingSetPoints: 15,
-  setsToWin: 3,
   winByTwo: true,
+  matchEnd: false,
+  setsToWin: 3,
+  decidingSetPoints: 15,
 };
 
 export const initialState = (config: Config): MatchState => ({
@@ -38,7 +39,9 @@ export function activeRule(state: MatchState, config: Config): ScoringRule {
   return config.rules.find((r) => r.id === state.activeRuleId) ?? config.rules[0];
 }
 
+/** Solo hay set decisivo si el partido tiene final (sets para ganar). */
 export function isDecidingSet(state: MatchState, config: Config): boolean {
+  if (!config.matchEnd) return false;
   const last = config.setsToWin - 1;
   return config.setsToWin > 1 && state.sets.a === last && state.sets.b === last;
 }
@@ -48,6 +51,7 @@ export function setTarget(state: MatchState, config: Config): number {
 }
 
 export function matchWinner(state: MatchState, config: Config): TeamId | null {
+  if (!config.matchEnd) return null;
   if (state.sets.a >= config.setsToWin) return 'a';
   if (state.sets.b >= config.setsToWin) return 'b';
   return null;

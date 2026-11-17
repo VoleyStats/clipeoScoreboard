@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet, winSpecialRally,
+  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet, winSpecialRally, matchWinner,
 } from '../src/logic';
 import type { Config } from '../src/types';
 
@@ -78,7 +78,7 @@ test('autoSets: gana set a 25 con 2 de ventaja', () => {
 });
 
 test('autoSets: el set decisivo va a 15', () => {
-  const c = { ...cfg, autoSets: true };
+  const c = { ...cfg, autoSets: true, matchEnd: true };
   let s = { ...initialState(c), sets: { a: 2, b: 2 }, points: { a: 14, b: 3 } };
   s = winRally(s, c, 'b');
   assert.equal(s.sets.b, 2);
@@ -128,4 +128,34 @@ test('mantener pulsado respeta el fin de set automático', () => {
   const c = { ...cfg, autoSets: true };
   const s = winSpecialRally({ ...initialState(c), points: { a: 23, b: 20 } }, c, 'a');
   assert.deepEqual(s.sets, { a: 1, b: 0 });
+});
+
+test('por defecto no hay final de set ni de partido', () => {
+  assert.equal(cfg.autoSets, false);
+  assert.equal(cfg.matchEnd, false);
+  const s = winRally({ ...initialState(cfg), points: { a: 30, b: 2 } }, cfg, 'a');
+  assert.deepEqual(s.sets, { a: 0, b: 0 });
+  assert.equal(matchWinner({ ...initialState(cfg), sets: { a: 9, b: 0 } }, cfg), null);
+});
+
+test('sin final de partido no hay set decisivo: todos los sets a los puntos configurados', () => {
+  const c = { ...cfg, autoSets: true, matchEnd: false };
+  const s = winRally({ ...initialState(c), sets: { a: 2, b: 2 }, points: { a: 14, b: 3 } }, c, 'a');
+  assert.deepEqual(s.sets, { a: 2, b: 2 });
+  assert.equal(s.points.a, 15);
+});
+
+test('puntos por set configurables y sin ganar por 2', () => {
+  const c = { ...cfg, autoSets: true, pointsPerSet: 21, winByTwo: false };
+  const s = winRally({ ...initialState(c), points: { a: 20, b: 20 } }, c, 'b');
+  assert.deepEqual(s.sets, { a: 0, b: 1 });
+});
+
+test('final de partido: ganador y no se suman más sets automáticos', () => {
+  const c = { ...cfg, autoSets: true, matchEnd: true, setsToWin: 2 };
+  let s = { ...initialState(c), sets: { a: 1, b: 0 }, points: { a: 24, b: 10 } };
+  s = winRally(s, c, 'a');
+  assert.equal(matchWinner(s, c), 'a');
+  s = winRally({ ...s, points: { a: 24, b: 0 } }, c, 'a');
+  assert.deepEqual(s.sets, { a: 2, b: 0 });
 });

@@ -4,7 +4,7 @@ import type { Config, ScoringRule, Team, TeamId } from '../types';
 import { F } from '../theme';
 import { Popup } from './Popup';
 import { RuleEditor, describeRule } from './RuleEditor';
-import { Btn, C, ColorPicker, Field, Row, Section, Stepper, Toggle } from './ui';
+import { Btn, C, ColorPicker, Field, NumberPicker, Row, Section, Toggle } from './ui';
 
 interface Props {
   visible: boolean;
@@ -67,26 +67,61 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
           value={config.resetPointsOnSet}
           onChange={(v) => set('resetPointsOnSet', v)}
         />
+      </Section>
+
+      <Section title="Final de set">
         <Toggle
-          label="Fin de set automático"
-          hint="Suma el set al llegar a los puntos objetivo"
+          label="Final de set automático"
+          hint={config.autoSets ? 'El set se suma solo al llegar a los puntos' : 'Desactivado: los sets se suman a mano'}
           value={config.autoSets}
           onChange={(v) => set('autoSets', v)}
         />
         {config.autoSets && (
           <>
-            <Row label="Puntos por set">
-              <Stepper value={config.pointsPerSet} onChange={(v) => set('pointsPerSet', v)} />
-            </Row>
-            <Row label="Puntos set decisivo">
-              <Stepper value={config.decidingSetPoints} onChange={(v) => set('decidingSetPoints', v)} />
-            </Row>
-            <Toggle label="Ganar por 2" value={config.winByTwo} onChange={(v) => set('winByTwo', v)} />
+            <NumberPicker
+              label="Puntos para ganar el set"
+              value={config.pointsPerSet}
+              onChange={(v) => set('pointsPerSet', v)}
+              presets={[15, 21, 25]}
+            />
+            <Toggle
+              label="Ganar por 2 de diferencia"
+              hint={config.winByTwo ? `Con ${config.pointsPerSet - 1} iguales se sigue jugando` : 'Gana quien llegue primero'}
+              value={config.winByTwo}
+              onChange={(v) => set('winByTwo', v)}
+            />
           </>
         )}
-        <Row label="Sets para ganar">
-          <Stepper value={config.setsToWin} onChange={(v) => set('setsToWin', v)} max={9} />
-        </Row>
+      </Section>
+
+      <Section title="Final de partido">
+        <Toggle
+          label="Final de partido"
+          hint={config.matchEnd ? 'Marca el ganador al llegar a los sets' : 'Desactivado: sin límite de sets'}
+          value={config.matchEnd}
+          onChange={(v) => set('matchEnd', v)}
+        />
+        {config.matchEnd && (
+          <>
+            <NumberPicker
+              label="Sets para ganar"
+              hint={`Al mejor de ${config.setsToWin * 2 - 1} ${config.setsToWin === 1 ? 'set' : 'sets'}`}
+              value={config.setsToWin}
+              onChange={(v) => set('setsToWin', v)}
+              presets={[1, 2, 3]}
+              max={9}
+            />
+            {config.autoSets && config.setsToWin > 1 && (
+              <NumberPicker
+                label="Puntos del set decisivo"
+                hint={`El ${config.setsToWin * 2 - 1}º set`}
+                value={config.decidingSetPoints}
+                onChange={(v) => set('decidingSetPoints', v)}
+                presets={[15, 21, 25]}
+              />
+            )}
+          </>
+        )}
       </Section>
 
       <Section title="Pantalla">
