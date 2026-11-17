@@ -45,6 +45,16 @@ Cuando N > 1, bajo el número aparecen puntos que muestran el progreso de cada e
 
 Todo se guarda en el dispositivo; la pantalla no se apaga mientras el marcador está abierto.
 
+## Animaciones
+
+Con [Reanimated](https://docs.swmansion.com/react-native-reanimated/) (iOS, Android y web con el mismo código; las animaciones corren en el hilo de UI y respetan el ajuste de «reducir movimiento» del sistema). Tokens en `src/motion.ts`.
+
+- **Número**: rueda hacia arriba al sumar y hacia abajo al restar (`src/components/AnimatedNumber.tsx`).
+- **Toque**: destello breve sobre la mitad del equipo.
+- **Sets**: el círculo late al cambiar; los puntos de progreso se rellenan con un rebote.
+- **Colores y cambio de lados**: transición suave del color de fondo; al cambiar de lados cada panel se funde hacia el otro equipo.
+- **Menús y ventanas**: entrada con un leve escalado; los iconos del menú, escalonados.
+
 ## Identidad visual
 
 Colores y tipografías de [clipeostats.com](https://clipeostats.com) (`src/theme.ts`):

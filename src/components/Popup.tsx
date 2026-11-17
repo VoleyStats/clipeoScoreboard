@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { backdropIn, popIn } from '../motion';
 import { C, F } from '../theme';
 
 interface Props {
@@ -16,10 +18,10 @@ interface Props {
 export function Popup({ visible, title, onClose, children, footer, maxWidth = 520 }: Props) {
   const { height } = useWindowDimensions();
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
-      <View style={styles.backdrop}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+      <Animated.View entering={backdropIn} style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
-        <View style={[styles.card, { maxWidth, maxHeight: height - 40 }]}>
+        <Animated.View entering={popIn} style={[styles.card, { maxWidth, maxHeight: height - 40 }]}>
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
             <Pressable onPress={onClose} hitSlop={12} style={styles.close} accessibilityLabel="Cerrar">
@@ -30,8 +32,8 @@ export function Popup({ visible, title, onClose, children, footer, maxWidth = 52
             {children}
           </ScrollView>
           {footer ? <View style={styles.footer}>{footer}</View> : null}
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }

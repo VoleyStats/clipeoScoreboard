@@ -1,4 +1,6 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { backdropIn, popIn } from '../motion';
 import type { ScoringRule } from '../types';
 import { describeRule } from './RuleEditor';
 import { C, F } from '../theme';
@@ -14,28 +16,31 @@ interface Props {
 
 export function RulePicker({ visible, rules, activeId, onSelect, onCreate, onClose }: Props) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+      <Animated.View entering={backdropIn} style={{ flex: 1 }}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+        <Animated.View entering={popIn} style={styles.sheet} onStartShouldSetResponder={() => true}>
           <Text style={styles.title}>Modo de puntuación</Text>
-          {rules.map((r) => {
+          {rules.map((r, i) => {
             const active = r.id === activeId;
             return (
+              <Animated.View key={r.id} entering={FadeInDown.delay(60 + i * 30).duration(200)}>
               <Pressable
-                key={r.id}
                 onPress={() => onSelect(r.id)}
                 style={({ pressed }) => [styles.item, active && styles.itemActive, pressed && { opacity: 0.6 }]}
               >
                 <Text style={[styles.name, active && { color: C.onVolt }]}>{r.name}</Text>
                 <Text style={[styles.desc, active && { color: C.onVolt, opacity: 0.7 }]}>{describeRule(r)}</Text>
               </Pressable>
+              </Animated.View>
             );
           })}
           <Pressable onPress={onCreate} style={({ pressed }) => [styles.item, styles.create, pressed && { opacity: 0.6 }]}>
             <Text style={[styles.name, { color: C.brandLight }]}>+ Nuevo modo</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </Pressable>
+      </Animated.View>
     </Modal>
   );
 }

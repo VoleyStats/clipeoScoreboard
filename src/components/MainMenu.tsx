@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Animated from 'react-native-reanimated';
+import { backdropIn, popIn, staggerIn } from '../motion';
 import { C, F } from '../theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -19,7 +21,8 @@ export function MainMenu({ visible, onClose: closeMenu, onCloseSet, onNewMatch, 
   const [confirmMatch, setConfirmMatch] = useState(false);
   const onClose = () => { setConfirmMatch(false); closeMenu(); };
 
-  const item = (icon: IconName, label: string, onPress: () => void, tone: 'default' | 'danger' = 'default') => (
+  const item = (i: number, icon: IconName, label: string, onPress: () => void, tone: 'default' | 'danger' = 'default') => (
+    <Animated.View entering={staggerIn(i)}>
     <Pressable
       onPress={onPress}
       accessibilityLabel={label}
@@ -29,29 +32,34 @@ export function MainMenu({ visible, onClose: closeMenu, onCloseSet, onNewMatch, 
     >
       <Ionicons name={icon} size={24} color={tone === 'danger' ? C.onBrand : C.text} />
     </Pressable>
+    </Animated.View>
   );
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
+      <Animated.View entering={backdropIn} style={styles.fill}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        {confirmMatch && <Text style={styles.confirm}>Toca otra vez para empezar un partido nuevo</Text>}
-        <View style={styles.bar} onStartShouldSetResponder={() => true}>
-          {item('refresh', 'Reiniciar puntos (suma 1 set al que va ganando)', () => { onCloseSet(); onClose(); })}
+        {confirmMatch && <Animated.Text entering={popIn} style={styles.confirm}>Toca otra vez para empezar un partido nuevo</Animated.Text>}
+        <Animated.View entering={popIn} style={styles.bar} onStartShouldSetResponder={() => true}>
+          {item(0, 'refresh', 'Reiniciar puntos (suma 1 set al que va ganando)', () => { onCloseSet(); onClose(); })}
           {item(
+            1,
             confirmMatch ? 'checkmark' : 'trash-outline',
             confirmMatch ? 'Confirmar nuevo partido' : 'Nuevo partido',
             () => (confirmMatch ? (onNewMatch(), onClose()) : setConfirmMatch(true)),
             confirmMatch ? 'danger' : 'default',
           )}
-          {item('swap-horizontal', 'Cambiar lados', () => { onSwap(); onClose(); })}
-          {item('settings-outline', 'Ajustes', () => { onClose(); onSettings(); })}
-        </View>
+          {item(2, 'swap-horizontal', 'Cambiar lados', () => { onSwap(); onClose(); })}
+          {item(3, 'settings-outline', 'Ajustes', () => { onClose(); onSettings(); })}
+        </Animated.View>
       </Pressable>
+      </Animated.View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: 'rgba(7,10,18,0.45)', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 56 },
   bar: {
     flexDirection: 'row', gap: 4, padding: 6, borderRadius: 999,

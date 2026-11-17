@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import Animated, { FadeInDown, LinearTransition, ZoomIn } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
@@ -124,9 +125,11 @@ export default function App() {
       <KeepAwake />
       <StatusBar hidden />
       <View style={[styles.root, { flexDirection: landscape ? 'row' : 'column' }]}>
-        {order.map((id) => (
+        {/* Clave por posición (no por equipo): al cambiar de lado, cada panel se queda en su sitio
+            y anima el color y el número hacia los del otro equipo. */}
+        {order.map((id, slot) => (
           <TeamPanel
-            key={id}
+            key={slot}
             team={safeTeam(config.teams[id], DEFAULT_CONFIG.teams[id])}
             points={state.points[id]}
             sets={state.sets[id]}
@@ -144,21 +147,28 @@ export default function App() {
           />
         ))}
 
-        <View style={styles.center} pointerEvents="box-none">
-          <Pressable
-            onPress={() => setPickerOpen(true)}
-            style={[styles.pill, rule.id !== config.rules[0].id && styles.pillActive]}
-            hitSlop={8}
-            accessibilityLabel="Modo de puntuación"
-          >
-            <Text style={[styles.pillText, rule.id !== config.rules[0].id && { color: C.onVolt }]} numberOfLines={1}>
-              {rule.name}
-            </Text>
-          </Pressable>
+        <Animated.View entering={FadeInDown.delay(250).duration(300)} style={styles.center} pointerEvents="box-none">
+          <Animated.View layout={LinearTransition.duration(200)}>
+            <Pressable
+              onPress={() => setPickerOpen(true)}
+              style={[styles.pill, rule.id !== config.rules[0].id && styles.pillActive]}
+              hitSlop={8}
+              accessibilityLabel="Modo de puntuación"
+            >
+              <Animated.Text
+                key={rule.id}
+                entering={ZoomIn.duration(200)}
+                style={[styles.pillText, rule.id !== config.rules[0].id && { color: C.onVolt }]}
+                numberOfLines={1}
+              >
+                {rule.name}
+              </Animated.Text>
+            </Pressable>
+          </Animated.View>
           <Pressable onPress={() => setMenuOpen(true)} style={styles.gear} hitSlop={12} accessibilityLabel="Menú">
             <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255,255,255,0.9)" />
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
 
       <RulePicker
