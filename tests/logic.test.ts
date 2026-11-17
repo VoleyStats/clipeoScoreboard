@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile,
+  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet,
 } from '../src/logic';
 import type { Config } from '../src/types';
 
@@ -90,4 +90,13 @@ test('reconcile vuelve a la regla por defecto si se borra la activa', () => {
   const s = selectRule(initialState(cfg), 'double');
   const c = { ...cfg, rules: [cfg.rules[0]] };
   assert.equal(reconcile(s, c).activeRuleId, 'normal');
+});
+
+test('cerrar set: suma set al que va ganando y reinicia puntos', () => {
+  const s = closeSet({ ...initialState(cfg), points: { a: 18, b: 25 }, sets: { a: 1, b: 0 } });
+  assert.deepEqual(s.sets, { a: 1, b: 1 });
+  assert.deepEqual(s.points, { a: 0, b: 0 });
+  const tie = closeSet({ ...initialState(cfg), points: { a: 7, b: 7 } });
+  assert.deepEqual(tie.sets, { a: 0, b: 0 });
+  assert.deepEqual(tie.points, { a: 0, b: 0 });
 });

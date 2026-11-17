@@ -40,7 +40,7 @@ export function Row({ label, hint, children }: { label: string; hint?: string; c
 export function Toggle({ label, hint, value, onChange }: { label: string; hint?: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <Row label={label} hint={hint}>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: C.accent, false: C.line }} thumbColor="#fff" />
+      <Switch value={value} onValueChange={onChange} trackColor={{ true: C.accent, false: C.line }} thumbColor="#fff" {...({ activeThumbColor: "#fff" } as object)} />
     </Row>
   );
 }

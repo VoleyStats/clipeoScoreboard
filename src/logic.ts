@@ -121,6 +121,14 @@ export function resetPoints(state: MatchState): MatchState {
   return { ...state, points: { a: 0, b: 0 }, progress: { a: 0, b: 0 } };
 }
 
+/** Cierra el set: suma 1 set al equipo con más puntos (si no hay empate) y reinicia los puntos. */
+export function closeSet(state: MatchState): MatchState {
+  const { a, b } = state.points;
+  const leader: TeamId | null = a > b ? 'a' : b > a ? 'b' : null;
+  const sets = leader ? { ...state.sets, [leader]: state.sets[leader] + 1 } : state.sets;
+  return { ...resetPoints(state), sets };
+}
+
 export function resetMatch(state: MatchState, config: Config): MatchState {
   return { ...initialState(config), swapped: state.swapped };
 }

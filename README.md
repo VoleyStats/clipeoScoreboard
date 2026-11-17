@@ -12,19 +12,23 @@ La pantalla principal son solo los números, a pantalla completa. En horizontal 
 | Círculo de sets | Suma 1 set (y reinicia los puntos, configurable) | Resta 1 set |
 
 Abajo en el centro:
-- **Píldora de jugada**: elige la jugada activa (solo aparece si hay más de una).
-- **•••**: ajustes.
+- **Píldora de modo**: elige el modo de puntuación activo o crea uno nuevo (**+ Nuevo modo**).
+- **•••**: menú rápido:
+  - **Reiniciar puntos**: suma 1 set al equipo que va ganando y pone los puntos a 0 (si hay empate, solo reinicia).
+  - **Nuevo partido**: puntos y sets a 0 (pide confirmación).
+  - **Cambiar lados**.
+  - **Ajustes** (popup).
 
-## Jugadas especiales
+## Modos de puntuación
 
-Cada jugada se define como «ganar **N** jugadas → sumar **M** puntos», con dos opciones:
+Cada modo se define como «ganar **N** jugadas → sumar **M** puntos», con dos opciones:
 
 - **Seguidas**: si el rival gana una jugada, se pierde el progreso.
 - **Solo una vez**: tras sumar, vuelve a la jugada por defecto (útil para «este punto vale doble»).
 
 Ejemplos incluidos (todos editables):
 
-| Jugada | N | M | Seguidas | Una vez |
+| Modo | N | M | Seguidas | Una vez |
 |---|---|---|---|---|
 | Normal (por defecto) | 1 | 1 | – | – |
 | Punto doble | 1 | 2 | – | sí |
@@ -35,7 +39,7 @@ Cuando N > 1, bajo el número aparecen puntos que muestran el progreso de cada e
 ## Ajustes
 
 - Nombre, color de fondo y color de texto de cada equipo (paleta o código hex).
-- Cambiar lados, reiniciar puntos, nuevo partido.
+- Modos de puntuación: editar, añadir y borrar.
 - Mostrar/ocultar nombres y sets, vibración.
 - Fin de set automático (puntos por set, set decisivo, ganar por 2) y sets para ganar el partido.
 
@@ -63,7 +67,11 @@ src/types.ts                 tipos
 src/storage.ts               persistencia (AsyncStorage)
 src/useTapSwipe.ts           gesto tap / deslizar hacia abajo
 src/components/TeamPanel.tsx mitad de pantalla de cada equipo
-src/components/RulePicker.tsx selector de jugada
-src/components/SettingsModal.tsx ajustes
+src/components/MainMenu.tsx   menú rápido •••
+src/components/RulePicker.tsx selector de modo
+src/components/NewRuleModal.tsx popup para crear un modo
+src/components/RuleEditor.tsx campos de un modo
+src/components/SettingsModal.tsx popup de ajustes
+src/components/Popup.tsx     ventana emergente reutilizable
 tests/logic.test.ts          tests
 ```

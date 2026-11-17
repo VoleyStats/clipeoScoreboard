@@ -5,13 +5,15 @@ import { useKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { MainMenu } from './src/components/MainMenu';
+import { NewRuleModal } from './src/components/NewRuleModal';
 import { RulePicker } from './src/components/RulePicker';
 import { SettingsModal } from './src/components/SettingsModal';
 import { TeamPanel } from './src/components/TeamPanel';
 import { isValidColor } from './src/components/ui';
 import {
-  DEFAULT_CONFIG, activeRule, addSet, initialState, matchWinner, reconcile, removePoint, removeSet,
-  resetMatch, resetPoints, selectRule, winRally,
+  DEFAULT_CONFIG, activeRule, addSet, closeSet, initialState, matchWinner, reconcile, removePoint, removeSet,
+  resetMatch, selectRule, winRally,
 } from './src/logic';
 import { load, saveConfig, saveState } from './src/storage';
 import type { Config, MatchState, Team, TeamId } from './src/types';
@@ -41,6 +43,8 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [newRuleOpen, setNewRuleOpen] = useState(false);
 
   useEffect(() => {
     load().then(({ config, state }) => {
@@ -99,8 +103,7 @@ export default function App() {
         ))}
 
         <View style={styles.center} pointerEvents="box-none">
-          {config.rules.length > 1 && (
-            <Pressable
+          <Pressable
               onPress={() => setPickerOpen(true)}
               style={[styles.pill, rule.id !== config.rules[0].id && styles.pillActive]}
               hitSlop={8}
@@ -108,9 +111,8 @@ export default function App() {
               <Text style={[styles.pillText, rule.id !== config.rules[0].id && { color: '#111' }]} numberOfLines={1}>
                 {rule.name}
               </Text>
-            </Pressable>
-          )}
-          <Pressable onPress={() => setSettingsOpen(true)} style={styles.gear} hitSlop={12} accessibilityLabel="Ajustes">
+          </Pressable>
+          <Pressable onPress={() => setMenuOpen(true)} style={styles.gear} hitSlop={12} accessibilityLabel="Menú">
             <Text style={styles.gearText}>•••</Text>
           </Pressable>
         </View>
@@ -121,16 +123,32 @@ export default function App() {
         rules={config.rules}
         activeId={rule.id}
         onSelect={(rid) => { setState((s) => selectRule(s, rid)); setPickerOpen(false); }}
+        onCreate={() => { setPickerOpen(false); setNewRuleOpen(true); }}
         onClose={() => setPickerOpen(false)}
+      />
+      <NewRuleModal
+        visible={newRuleOpen}
+        onClose={() => setNewRuleOpen(false)}
+        onCreate={(r) => {
+          const c = { ...config, rules: [...config.rules, r] };
+          setConfig(c);
+          setState((s) => selectRule(reconcile(s, c), r.id));
+          setNewRuleOpen(false);
+        }}
+      />
+      <MainMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onCloseSet={() => setState(closeSet)}
+        onNewMatch={() => setState((s) => resetMatch(s, config))}
+        onSwap={() => setState((s) => ({ ...s, swapped: !s.swapped }))}
+        onSettings={() => setSettingsOpen(true)}
       />
       <SettingsModal
         visible={settingsOpen}
         config={config}
         onChange={updateConfig}
         onClose={() => setSettingsOpen(false)}
-        onSwap={() => setState((s) => ({ ...s, swapped: !s.swapped }))}
-        onResetPoints={() => setState(resetPoints)}
-        onResetMatch={() => setState((s) => resetMatch(s, config))}
       />
     </SafeAreaProvider>
   );
