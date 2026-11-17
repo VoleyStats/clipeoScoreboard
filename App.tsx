@@ -14,11 +14,11 @@ import { SettingsModal } from './src/components/SettingsModal';
 import { TeamPanel } from './src/components/TeamPanel';
 import { isValidColor } from './src/components/ui';
 import {
-  DEFAULT_CONFIG, activeRule, addSet, closeSet, initialState, longPressRule, winSpecialRally, matchWinner, reconcile, removePoint, removeSet,
-  resetMatch, selectRule, winRally,
+  DEFAULT_CONFIG, GESTURES, activeRule, addSet, applyGesture, closeSet, initialState, matchWinner, reconcile, removeSet, resolveAction,
+  resetMatch, selectRule,
 } from './src/logic';
 import { load, saveConfig, saveState } from './src/storage';
-import type { Config, MatchState, Team, TeamId } from './src/types';
+import type { Config, Gesture, MatchState, Team, TeamId } from './src/types';
 import { C, F } from './src/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFonts } from 'expo-font';
@@ -69,7 +69,18 @@ const safeTeam = (t: Team, fallback: Team): Team => ({
 export default function App() {
   const { width, height } = useWindowDimensions();
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
-  const [state, setState] = useState<MatchState>(() => initialState(DEFAULT_CONFIG));
+  // Estado del partido con historial para "Deshacer" (en memoria, últimos 50 cambios)
+  const [game, setGame] = useState<{ cur: MatchState; past: MatchState[] }>(() => ({
+    cur: initialState(DEFAULT_CONFIG), past: [],
+  }));
+  const state = game.cur;
+  const setState = useCallback((next: MatchState | ((s: MatchState) => MatchState)) => {
+    setGame((g) => {
+      const n = typeof next === 'function' ? next(g.cur) : next;
+      return n === g.cur ? g : { cur: n, past: [...g.past.slice(-49), g.cur] };
+    });
+  }, []);
+  const undo = () => setGame((g) => (g.past.length ? { cur: g.past[g.past.length - 1], past: g.past.slice(0, -1) } : g));
   const [ready, setReady] = useState(false);
   /** 0 = equipos en su lado, 1 = intercambiados. Anima el cruce de las tarjetas. */
   const swapPos = useSharedValue(0);
@@ -87,10 +98,15 @@ export default function App() {
     load().then(({ config, state }) => {
       swapPos.set(state.swapped ? 1 : 0);
       setConfig(config);
-      setState(state);
+      setGame({ cur: state, past: [] });
       setReady(true);
     });
-  }, []);
+  }, [swapPos]);
+
+  // El cruce de tarjetas sigue al estado, así también se anima al deshacer un cambio de lado
+  useEffect(() => {
+    swapPos.set(withTiming(state.swapped ? 1 : 0, { duration: 620, easing: Easing.inOut(Easing.cubic) }));
+  }, [state.swapped, swapPos]);
 
   const loaded = ready && (fontsLoaded || !!fontError);
   useEffect(() => {
@@ -123,11 +139,15 @@ export default function App() {
   const panelH = landscape ? height : height / 2;
   const rule = activeRule(state, config);
   const winner = matchWinner(state, config);
-  const special = longPressRule(config);
-  const toggleSwap = () => {
-    const next = !state.swapped;
-    swapPos.set(withTiming(next ? 1 : 0, { duration: 620, easing: Easing.inOut(Easing.cubic) }));
-    setState((s) => ({ ...s, swapped: next }));
+  const toggleSwap = () => setState((s) => ({ ...s, swapped: !s.swapped }));
+  const actions = Object.fromEntries(GESTURES.map((g) => [g, resolveAction(config, config.gestures[g])])) as Record<
+    Gesture, ReturnType<typeof resolveAction>
+  >;
+  const onGesture = (team: TeamId, g: Gesture) => {
+    const a = actions[g];
+    if (a.kind === 'undo') { buzz(true); undo(); return; }
+    buzz(a.kind === 'rule' ? 'heavy' : a.kind === 'minus');
+    setState((s) => applyGesture(s, config, team, a));
   };
 
   return (
@@ -143,8 +163,8 @@ export default function App() {
             swapDir={id === 'a' ? 1 : -1}
             swapDistance={landscape ? panelW : panelH}
             horizontal={landscape}
-            onSpecial={special ? () => { buzz('heavy'); setState((s) => winSpecialRally(s, config, id)); } : undefined}
-            specialLabel={special ? `+${special.pointsAwarded}` : undefined}
+            actions={actions}
+            onGesture={(g) => onGesture(id, g)}
             team={safeTeam(config.teams[id], DEFAULT_CONFIG.teams[id])}
             points={state.points[id]}
             sets={state.sets[id]}
@@ -155,8 +175,6 @@ export default function App() {
             showName={config.showNames}
             showSets={config.showSets}
             winner={winner === id}
-            onPoint={() => { buzz(); setState((s) => winRally(s, config, id)); }}
-            onUnpoint={() => { buzz(true); setState((s) => removePoint(s, id)); }}
             onSet={() => { buzz(); setState((s) => addSet(s, config, id)); }}
             onUnset={() => { buzz(true); setState((s) => removeSet(s, id)); }}
           />
@@ -210,6 +228,8 @@ export default function App() {
         onCloseSet={() => setState(closeSet)}
         onNewMatch={() => setState((s) => resetMatch(s, config))}
         onSwap={toggleSwap}
+        onUndo={undo}
+        canUndo={game.past.length > 0}
         onSettings={() => setSettingsOpen(true)}
       />
       <SettingsModal

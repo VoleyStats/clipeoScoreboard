@@ -26,12 +26,25 @@ export interface ScoringRule {
   once: boolean;
 }
 
+/** Gestos sobre el marcador de un equipo (el círculo de sets tiene los suyos fijos). */
+export type Gesture = 'tap' | 'longPress' | 'swipeDown' | 'swipeUp';
+
+/**
+ * Acción de un gesto:
+ *  - point: suma según el modo activo
+ *  - rule:<id>: una jugada del modo indicado (solo modos de 1 jugada), sin cambiar el modo activo
+ *  - minus: resta 1 punto (o deshace progreso pendiente)
+ *  - undo: deshace el último cambio
+ *  - none: nada
+ */
+export type GestureAction = 'point' | 'minus' | 'undo' | 'none' | `rule:${string}`;
+
 export interface Config {
   teams: Record<TeamId, Team>;
   /** La primera regla es la regla por defecto */
   rules: ScoringRule[];
-  /** Modo que se aplica una vez al mantener pulsado (solo modos de 1 jugada). null = desactivado */
-  longPressRuleId: string | null;
+  /** Qué hace cada gesto sobre el marcador de un equipo */
+  gestures: Record<Gesture, GestureAction>;
   showNames: boolean;
   showSets: boolean;
   haptics: boolean;

@@ -1,6 +1,6 @@
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { DEFAULT_CONFIG, longPressRules, newRuleId } from '../logic';
-import type { Config, ScoringRule, Team, TeamId } from '../types';
+import { DEFAULT_CONFIG, GESTURES, gestureRules, newRuleId, resolveAction } from '../logic';
+import type { Config, Gesture, GestureAction, ScoringRule, Team, TeamId } from '../types';
 import { F } from '../theme';
 import { Popup } from './Popup';
 import { RuleEditor, describeRule } from './RuleEditor';
@@ -12,6 +12,13 @@ interface Props {
   onChange: (c: Config) => void;
   onClose: () => void;
 }
+
+const GESTURE_LABELS: Record<Gesture, { label: string; hint: string }> = {
+  tap: { label: 'Tocar', hint: 'Un toque corto' },
+  longPress: { label: 'Mantener pulsado', hint: 'Medio segundo sin mover el dedo' },
+  swipeDown: { label: 'Deslizar hacia abajo', hint: 'Arrastrar el dedo hacia abajo' },
+  swipeUp: { label: 'Deslizar hacia arriba', hint: 'Arrastrar el dedo hacia arriba' },
+};
 
 export function SettingsModal({ visible, config, onChange, onClose }: Props) {
   const set = <K extends keyof Config>(k: K, v: Config[K]) => onChange({ ...config, [k]: v });
@@ -133,29 +140,48 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
 
       <Section title="Gestos">
         <Text style={styles.help}>
-          Toca un marcador para sumar · Desliza hacia abajo para restar.{'\n'}
-          Lo mismo sobre el círculo de sets.{'\n'}
-          Mantén pulsado un marcador para sumar una jugada especial sin cambiar el modo activo.
+          Elige qué hace cada gesto sobre el marcador de un equipo. Los modos de 1 jugada se aplican una sola vez
+          sin cambiar el modo activo. El círculo de sets siempre suma al tocar y resta al deslizar hacia abajo.
         </Text>
-        <Row label="Mantener pulsado" hint="Solo modos de 1 jugada" />
-        <View style={styles.chips}>
-          {[{ id: null as string | null, name: 'Desactivado', pts: 0 }, ...longPressRules(config).map((r) => ({ id: r.id as string | null, name: r.name, pts: r.pointsAwarded }))].map((o) => {
-            const active = (longPressRules(config).some((r) => r.id === config.longPressRuleId) ? config.longPressRuleId : null) === o.id;
-            return (
-              <Pressable
-                key={o.id ?? 'off'}
-                onPress={() => set('longPressRuleId', o.id)}
-                style={[styles.chip, active && styles.chipActive]}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: active }}
-              >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                  {o.name}{o.id ? ` · +${o.pts}` : ''}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {GESTURES.map((g) => {
+          const resolved = resolveAction(config, config.gestures[g]);
+          const current: GestureAction = resolved.kind === 'rule' ? `rule:${resolved.rule.id}` : resolved.kind;
+          const options: { value: GestureAction; label: string }[] = [
+            { value: 'point', label: 'Sumar' },
+            ...gestureRules(config).map((r) => ({ value: `rule:${r.id}` as GestureAction, label: `${r.name} · +${r.pointsAwarded}` })),
+            { value: 'minus', label: 'Restar 1' },
+            { value: 'undo', label: 'Deshacer' },
+            { value: 'none', label: 'Nada' },
+          ];
+          return (
+            <View key={g} style={styles.gesture}>
+              <Row label={GESTURE_LABELS[g].label} hint={GESTURE_LABELS[g].hint} />
+              <View style={styles.chips}>
+                {options.map((o) => {
+                  const active = o.value === current;
+                  return (
+                    <Pressable
+                      key={o.value}
+                      onPress={() => set('gestures', { ...config.gestures, [g]: o.value })}
+                      style={[styles.chip, active && styles.chipActive]}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: active }}
+                      accessibilityLabel={`${GESTURE_LABELS[g].label}: ${o.label}`}
+                    >
+                      <Text style={[styles.chipText, active && styles.chipTextActive]}>{o.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })}
+        {!GESTURES.some((g) => ['minus', 'undo'].includes(resolveAction(config, config.gestures[g]).kind)) && (
+          <Text style={styles.warn}>Ningún gesto resta puntos. Puedes deshacer desde el menú •••.</Text>
+        )}
+        {resolveAction(config, config.gestures.tap).kind === 'none' && (
+          <Text style={styles.warn}>Tocar no hace nada: el marcador solo responderá a los otros gestos.</Text>
+        )}
       </Section>
 
       <Btn label="Restaurar ajustes por defecto" kind="danger" onPress={() => onChange(DEFAULT_CONFIG)} />
@@ -165,6 +191,8 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
 
 const styles = StyleSheet.create({
   help: { color: C.muted, fontFamily: F.regular, fontSize: 13, lineHeight: 19, paddingVertical: 10 },
+  gesture: { borderTopWidth: 1, borderTopColor: C.line },
+  warn: { color: C.volt, fontFamily: F.medium, fontSize: 13, lineHeight: 19, paddingBottom: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 14 },
   chip: { borderWidth: 1, borderColor: C.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
   chipActive: { backgroundColor: C.volt, borderColor: C.volt },

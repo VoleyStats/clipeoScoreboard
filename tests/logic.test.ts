@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet, winSpecialRally, matchWinner,
+  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet, winSpecialRally, matchWinner, applyGesture, resolveAction, migrateConfig,
 } from '../src/logic';
 import type { Config } from '../src/types';
 
@@ -101,33 +101,51 @@ test('cerrar set: suma set al que va ganando y reinicia puntos', () => {
   assert.deepEqual(tie.points, { a: 0, b: 0 });
 });
 
-test('mantener pulsado: suma el modo elegido sin cambiar el modo activo', () => {
-  const s = winSpecialRally(initialState(cfg), cfg, 'a');
+const double = cfg.rules.find((r) => r.id === 'double')!;
+const act = (a: Parameters<typeof resolveAction>[1], c = cfg) => resolveAction(c, a);
+
+test('gestos por defecto: tocar suma, mantener = punto doble, abajo resta, arriba nada', () => {
+  const s0 = initialState(cfg);
+  assert.equal(applyGesture(s0, cfg, 'a', act(cfg.gestures.tap)).points.a, 1);
+  assert.equal(applyGesture(s0, cfg, 'a', act(cfg.gestures.longPress)).points.a, 2);
+  assert.equal(applyGesture({ ...s0, points: { a: 5, b: 0 } }, cfg, 'a', act(cfg.gestures.swipeDown)).points.a, 4);
+  assert.equal(applyGesture(s0, cfg, 'a', act(cfg.gestures.swipeUp)), s0);
+});
+
+test('jugada especial: no cambia el modo activo', () => {
+  const s = winSpecialRally(initialState(cfg), cfg, 'a', double);
   assert.equal(s.points.a, 2);
   assert.equal(s.activeRuleId, 'normal');
 });
 
-test('mantener pulsado: rompe la racha del rival pero no suma progreso propio', () => {
+test('jugada especial: rompe la racha del rival pero no suma progreso propio', () => {
   let s = selectRule(initialState(cfg), 'three-for-one');
   s = winRally(winRally(s, cfg, 'b'), cfg, 'b');
   s = winRally(s, cfg, 'a');
-  s = winSpecialRally(s, cfg, 'a');
+  s = winSpecialRally(s, cfg, 'a', double);
   assert.deepEqual(s.progress, { a: 1, b: 0 });
   assert.equal(s.points.a, 2);
   assert.equal(s.activeRuleId, 'three-for-one');
 });
 
-test('mantener pulsado desactivado o modo inválido: suma como un toque', () => {
-  const off = { ...cfg, longPressRuleId: null };
-  assert.equal(winSpecialRally(initialState(off), off, 'a').points.a, 1);
-  const bad = { ...cfg, longPressRuleId: 'three-for-one' }; // 3 jugadas: no válido
-  assert.equal(winSpecialRally(initialState(bad), bad, 'a').points.a, 1);
+test('acción con modo borrado o de varias jugadas se trata como sumar', () => {
+  assert.deepEqual(act('rule:no-existe'), { kind: 'point' });
+  assert.deepEqual(act('rule:three-for-one'), { kind: 'point' });
+  assert.equal(act('rule:double').kind, 'rule');
 });
 
-test('mantener pulsado respeta el fin de set automático', () => {
+test('jugada especial respeta el fin de set automático', () => {
   const c = { ...cfg, autoSets: true };
-  const s = winSpecialRally({ ...initialState(c), points: { a: 23, b: 20 } }, c, 'a');
+  const s = winSpecialRally({ ...initialState(c), points: { a: 23, b: 20 } }, c, 'a', double);
   assert.deepEqual(s.sets, { a: 1, b: 0 });
+});
+
+test('migración: longPressRuleId de versiones anteriores pasa a gestures', () => {
+  assert.equal(migrateConfig({ longPressRuleId: 'double' }).gestures?.longPress, 'rule:double');
+  assert.equal(migrateConfig({ longPressRuleId: null }).gestures?.longPress, 'none');
+  assert.equal(migrateConfig({ longPressRuleId: null }).gestures?.tap, 'point');
+  assert.ok(!('longPressRuleId' in migrateConfig({ longPressRuleId: 'double' })));
+  assert.equal(migrateConfig({ gestures: { swipeUp: 'undo' } }).gestures?.swipeDown, 'minus');
 });
 
 test('por defecto no hay final de set ni de partido', () => {

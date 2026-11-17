@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DEFAULT_CONFIG, initialState, reconcile } from './logic';
+import { DEFAULT_CONFIG, initialState, migrateConfig, reconcile } from './logic';
 import type { Config, MatchState } from './types';
 
 const CONFIG_KEY = 'clipeo.config.v1';
@@ -8,7 +8,7 @@ const STATE_KEY = 'clipeo.state.v1';
 export async function load(): Promise<{ config: Config; state: MatchState }> {
   try {
     const [c, s] = await Promise.all([AsyncStorage.getItem(CONFIG_KEY), AsyncStorage.getItem(STATE_KEY)]);
-    const parsed = c ? (JSON.parse(c) as Partial<Config>) : {};
+    const parsed = c ? migrateConfig(JSON.parse(c) as Record<string, unknown>) : {};
     const config: Config = {
       ...DEFAULT_CONFIG,
       ...parsed,

@@ -5,9 +5,10 @@ import Animated, {
   ZoomIn, ZoomOut,
 } from 'react-native-reanimated';
 import { MOTION } from '../motion';
-import { useTapSwipe } from '../useTapSwipe';
+import type { ResolvedAction } from '../logic';
+import { type GestureHandlers, useGestures } from '../useTapSwipe';
 import { AnimatedNumber } from './AnimatedNumber';
-import type { Team } from '../types';
+import type { Gesture, Team } from '../types';
 import { F } from '../theme';
 
 interface Props {
@@ -22,14 +23,11 @@ interface Props {
   showName: boolean;
   showSets: boolean;
   winner: boolean;
-  onPoint: () => void;
-  onUnpoint: () => void;
+  /** Acción configurada para cada gesto (decide también la respuesta visual) */
+  actions: Record<Gesture, ResolvedAction>;
+  onGesture: (g: Gesture) => void;
   onSet: () => void;
   onUnset: () => void;
-  /** Mantener pulsado: jugada especial (p. ej. punto doble). Sin ella, el gesto no hace nada */
-  onSpecial?: () => void;
-  /** Texto que flota al usar la jugada especial, p. ej. "+2" */
-  specialLabel?: string;
   /** Cambio de lado: 0 = posición normal, 1 = intercambiado (animado) */
   swap: SharedValue<number>;
   /** Hacia dónde se desplaza este panel al intercambiar: +1 derecha/abajo, -1 izquierda/arriba */
@@ -52,23 +50,28 @@ export function TeamPanel(p: Props) {
   const pulse = (peak: number) =>
     flash.set(withSequence(withTiming(peak, { duration: 50 }), withTiming(0, { duration: 420 })));
 
-  const [bursts, setBursts] = useState<number[]>([]);
-  const special = p.onSpecial
-    ? () => {
-        pulse(0.3);
-        p.onSpecial?.();
-        const id = Date.now();
-        setBursts((b) => [...b, id]);
-        setTimeout(() => setBursts((b) => b.filter((x) => x !== id)), 950);
-      }
-    : undefined;
+  // Texto flotante ("+2", "↶") para las acciones que no son un simple punto
+  const [bursts, setBursts] = useState<{ id: number; label: string }[]>([]);
+  const burst = (label: string) => {
+    const id = Date.now() + Math.random();
+    setBursts((b) => [...b, { id, label }]);
+    setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 950);
+  };
 
-  const pointGestures = useTapSwipe(
-    () => { pulse(0.16); p.onPoint(); },
-    () => { pulse(0.08); p.onUnpoint(); },
-    special,
-  );
-  const setGestures = useTapSwipe(p.onSet, p.onUnset);
+  const handlers: GestureHandlers = {};
+  for (const g of Object.keys(p.actions) as Gesture[]) {
+    const a = p.actions[g];
+    if (a.kind === 'none') continue; // sin manejador: el gesto no hace nada (ni espera)
+    handlers[g] = () => {
+      if (a.kind === 'point') pulse(0.16);
+      else if (a.kind === 'rule') { pulse(0.3); burst(`+${a.rule.pointsAwarded}`); }
+      else if (a.kind === 'minus') pulse(0.08);
+      else if (a.kind === 'undo') { pulse(0.08); burst('↶'); }
+      p.onGesture(g);
+    };
+  }
+  const pointGestures = useGestures(handlers);
+  const setGestures = useGestures({ tap: p.onSet, swipeDown: p.onUnset });
 
   // Fondo con transición suave al cambiar el color en ajustes
   const bg = useSharedValue(p.team.bg);
@@ -145,14 +148,14 @@ export function TeamPanel(p: Props) {
       />
       </View>
 
-      {bursts.map((id) => (
+      {bursts.map(({ id, label }) => (
         <Animated.Text
           key={id}
           entering={floatUp}
           pointerEvents="none"
           style={[styles.burst, { color: fg, fontSize: small * 2.6, top: p.height * 0.18 }, { opacity: 0 }]}
         >
-          {p.specialLabel}
+          {label}
         </Animated.Text>
       ))}
 

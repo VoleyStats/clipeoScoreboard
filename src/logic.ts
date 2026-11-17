@@ -1,4 +1,4 @@
-import type { Config, MatchState, ScoringRule, TeamId } from './types';
+import type { Config, Gesture, GestureAction, MatchState, ScoringRule, TeamId } from './types';
 
 export const other = (t: TeamId): TeamId => (t === 'a' ? 'b' : 'a');
 
@@ -14,7 +14,7 @@ export const DEFAULT_CONFIG: Config = {
     b: { name: 'Visitante', bg: '#E63946', fg: '#FFFFFF' },
   },
   rules: DEFAULT_RULES,
-  longPressRuleId: 'double',
+  gestures: { tap: 'point', longPress: 'rule:double', swipeDown: 'minus', swipeUp: 'none' },
   showNames: true,
   showSets: true,
   haptics: true,
@@ -99,30 +99,59 @@ export function winRally(state: MatchState, config: Config, team: TeamId): Match
   return checkSetWon(next, config);
 }
 
-/** Modos que se pueden usar al mantener pulsado: los de una sola jugada, salvo el de por defecto. */
-export function longPressRules(config: Config): ScoringRule[] {
+export const GESTURES: Gesture[] = ['tap', 'longPress', 'swipeDown', 'swipeUp'];
+
+/** Modos que un gesto puede aplicar directamente: los de una sola jugada, salvo el de por defecto. */
+export function gestureRules(config: Config): ScoringRule[] {
   return config.rules.slice(1).filter((r) => r.ralliesRequired === 1);
 }
 
-/** El modo de "mantener pulsado", o null si está desactivado o ya no es válido. */
-export function longPressRule(config: Config): ScoringRule | null {
-  return longPressRules(config).find((r) => r.id === config.longPressRuleId) ?? null;
+export type ResolvedAction =
+  | { kind: 'point' | 'minus' | 'undo' | 'none' }
+  | { kind: 'rule'; rule: ScoringRule };
+
+/** Interpreta la acción de un gesto. Un modo borrado o no válido se trata como "sumar". */
+export function resolveAction(config: Config, action: GestureAction): ResolvedAction {
+  if (action.startsWith('rule:')) {
+    const rule = gestureRules(config).find((r) => r.id === action.slice(5));
+    return rule ? { kind: 'rule', rule } : { kind: 'point' };
+  }
+  return { kind: action as 'point' | 'minus' | 'undo' | 'none' };
 }
 
 /**
- * Mantener pulsado: el equipo gana UNA jugada que vale los puntos del modo elegido,
+ * Jugada especial: el equipo gana UNA jugada que vale los puntos del modo indicado,
  * sin cambiar el modo activo. Cuenta como jugada perdida para el rival (racha "seguidas"),
  * pero no suma progreso al modo activo porque se ha puntuado con otra regla.
  */
-export function winSpecialRally(state: MatchState, config: Config, team: TeamId): MatchState {
-  const rule = longPressRule(config);
-  if (!rule) return winRally(state, config, team);
+export function winSpecialRally(state: MatchState, config: Config, team: TeamId, rule: ScoringRule): MatchState {
   const progress = { ...state.progress };
   if (activeRule(state, config).consecutive) progress[other(team)] = 0;
   return checkSetWon(
     { ...state, progress, points: { ...state.points, [team]: state.points[team] + rule.pointsAwarded } },
     config,
   );
+}
+
+/** Aplica la acción de un gesto. "Deshacer" lo gestiona quien guarda el historial. */
+export function applyGesture(state: MatchState, config: Config, team: TeamId, action: ResolvedAction): MatchState {
+  switch (action.kind) {
+    case 'point': return winRally(state, config, team);
+    case 'rule': return winSpecialRally(state, config, team, action.rule);
+    case 'minus': return removePoint(state, team);
+    default: return state;
+  }
+}
+
+/** Adapta configuraciones guardadas por versiones anteriores. */
+export function migrateConfig(saved: Record<string, unknown>): Partial<Config> {
+  const { longPressRuleId, ...rest } = saved as Partial<Config> & { longPressRuleId?: string | null };
+  const out: Partial<Config> = { ...rest };
+  if (!out.gestures && longPressRuleId !== undefined) {
+    out.gestures = { ...DEFAULT_CONFIG.gestures, longPress: longPressRuleId ? `rule:${longPressRuleId}` : 'none' };
+  }
+  if (out.gestures) out.gestures = { ...DEFAULT_CONFIG.gestures, ...out.gestures };
+  return out;
 }
 
 /** Swipe down en el marcador: deshace progreso pendiente o resta un punto. */

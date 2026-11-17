@@ -6,16 +6,25 @@ La pantalla principal son solo los números, a pantalla completa. En horizontal 
 
 ## Gestos
 
-| Dónde | Tap | Deslizar hacia abajo |
-|---|---|---|
-| Marcador de un equipo | Suma (según la jugada activa) | Resta 1 punto (o deshace progreso pendiente) |
-| Círculo de sets | Suma 1 set (y reinicia los puntos, configurable) | Resta 1 set |
+Cada gesto sobre el marcador de un equipo tiene una acción configurable (Ajustes → Gestos):
 
-**Mantener pulsado** un marcador suma una jugada especial (por defecto «Punto doble», +2) sin cambiar el modo activo. Se elige en Ajustes → Gestos entre los modos de 1 jugada, o se desactiva. A diferencia de tocar varias veces, cuenta como **una sola jugada**: con modos de progreso («3 seguidas = 1») no suma progreso y sí rompe la racha del rival.
+| Gesto | Por defecto | Acciones posibles |
+|---|---|---|
+| Tocar | Sumar (modo activo) | Sumar · cualquier modo de 1 jugada · Restar 1 · Deshacer · Nada |
+| Mantener pulsado | Punto doble (+2) | ídem |
+| Deslizar hacia abajo | Restar 1 | ídem |
+| Deslizar hacia arriba | Nada | ídem |
+
+- **Modo de 1 jugada** (p. ej. «Punto doble»): se aplica una vez sin cambiar el modo activo. Cuenta como una sola jugada: con modos de progreso («3 seguidas = 1») no suma progreso y sí rompe la racha del rival.
+- **Deshacer**: revierte el último cambio, sea cual sea (punto, set, cambio de lado…). También está en el menú •••.
+- El círculo de sets siempre suma al tocar y resta al deslizar hacia abajo.
+
+Por qué gestos → acciones y no gestos dentro de cada modo: un modo define cuánto vale una jugada y un gesto cómo se marca; así restar y deshacer también son configurables, dos modos no compiten por el mismo gesto y todo se ajusta en un solo sitio. El doble toque se descartó porque obligaría a retrasar cada toque normal para distinguirlo.
 
 Abajo en el centro:
 - **Píldora de modo**: elige el modo de puntuación activo o crea uno nuevo (**+ Nuevo modo**).
 - **•••**: fila de iconos:
+  - ↶ **Deshacer** el último cambio.
   - ↻ **Reiniciar puntos**: suma 1 set al equipo que va ganando y pone los puntos a 0 (si hay empate, solo reinicia).
   - 🗑 **Nuevo partido**: puntos y sets a 0 (segundo toque para confirmar).
   - ⇄ **Cambiar lados**.

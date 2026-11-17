@@ -1,25 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { PanResponder } from 'react-native';
+import type { Gesture } from './types';
 
 const SWIPE_MIN = 40;
 const TAP_SLOP = 12;
 const LONG_PRESS_MS = 450;
 
-interface Handlers {
-  onTap: () => void;
-  onSwipeDown: () => void;
-  /** Opcional: mantener pulsado sin mover el dedo */
-  onLongPress?: () => void;
-}
+export type GestureHandlers = Partial<Record<Gesture, () => void>>;
 
 /**
- * Tap -> onTap, deslizar hacia abajo -> onSwipeDown, mantener pulsado -> onLongPress.
+ * Reconoce tocar, mantener pulsado y deslizar arriba/abajo.
  * Usa PanResponder para funcionar igual en iOS, Android y Web.
+ * Mantener pulsado solo se activa si hay manejador, y se cancela al mover el dedo.
  */
-export function useTapSwipe(onTap: () => void, onSwipeDown: () => void, onLongPress?: () => void) {
-  const handlers = useRef<Handlers>({ onTap, onSwipeDown, onLongPress });
+export function useGestures(handlers: GestureHandlers) {
+  const ref = useRef<GestureHandlers>(handlers);
   useEffect(() => {
-    handlers.current = { onTap, onSwipeDown, onLongPress };
+    ref.current = handlers;
   });
 
   // El ref solo se lee dentro de los callbacks de gesto (eventos), nunca durante el render.
@@ -37,11 +34,11 @@ export function useTapSwipe(onTap: () => void, onSwipeDown: () => void, onLongPr
       onPanResponderGrant: () => {
         longPressed = false;
         cancel();
-        if (handlers.current.onLongPress) {
+        if (ref.current.longPress) {
           timer = setTimeout(() => {
             timer = null;
             longPressed = true;
-            handlers.current.onLongPress?.();
+            ref.current.longPress?.();
           }, LONG_PRESS_MS);
         }
       },
@@ -52,11 +49,10 @@ export function useTapSwipe(onTap: () => void, onSwipeDown: () => void, onLongPr
       onPanResponderRelease: (_, g) => {
         cancel();
         if (longPressed) return;
-        if (g.dy > SWIPE_MIN && Math.abs(g.dy) > Math.abs(g.dx)) {
-          handlers.current.onSwipeDown();
-        } else if (Math.abs(g.dx) < TAP_SLOP && Math.abs(g.dy) < TAP_SLOP) {
-          handlers.current.onTap();
-        }
+        const vertical = Math.abs(g.dy) > Math.abs(g.dx);
+        if (vertical && g.dy > SWIPE_MIN) ref.current.swipeDown?.();
+        else if (vertical && g.dy < -SWIPE_MIN) ref.current.swipeUp?.();
+        else if (Math.abs(g.dx) < TAP_SLOP && Math.abs(g.dy) < TAP_SLOP) ref.current.tap?.();
       },
     });
   });
