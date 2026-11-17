@@ -10,12 +10,13 @@ Cada gesto sobre el marcador de un equipo tiene una acción configurable (Ajuste
 
 | Gesto | Por defecto | Acciones posibles |
 |---|---|---|
-| Tocar | Sumar (modo activo) | Sumar · cualquier modo de 1 jugada · Restar 1 · Deshacer · Nada |
+| Tocar | Sumar (modo activo) | Sumar (modo activo) · cualquiera de tus modos · Restar 1 · Deshacer · Nada |
 | Mantener pulsado | Punto doble (+2) | ídem |
 | Deslizar hacia abajo | Restar 1 | ídem |
 | Deslizar hacia arriba | Nada | ídem |
 
-- **Modo de 1 jugada** (p. ej. «Punto doble»): se aplica una vez sin cambiar el modo activo. Cuenta como una sola jugada: con modos de progreso («3 seguidas = 1») no suma progreso y sí rompe la racha del rival.
+- **Modo de 1 jugada** (p. ej. «Punto doble» o un «Triple» propio): suma sus puntos una vez sin cambiar el modo activo, con un «+N» flotante. Cuenta como una sola jugada: con modos de progreso («3 seguidas = 1») no suma progreso y sí rompe la racha del rival.
+- **Modo de varias jugadas** (p. ej. «3 seguidas = 1»): el gesto activa ese modo y cuenta la jugada en su progreso (se ve en los puntos bajo el número).
 - **Deshacer**: revierte el último cambio, sea cual sea (punto, set, cambio de lado…). También está en el menú •••.
 - El círculo de sets siempre suma al tocar y resta al deslizar hacia abajo.
 

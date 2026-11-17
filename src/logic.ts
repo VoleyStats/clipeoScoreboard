@@ -101,16 +101,16 @@ export function winRally(state: MatchState, config: Config, team: TeamId): Match
 
 export const GESTURES: Gesture[] = ['tap', 'longPress', 'swipeDown', 'swipeUp'];
 
-/** Modos que un gesto puede aplicar directamente: los de una sola jugada, salvo el de por defecto. */
+/** Modos que se pueden asignar a un gesto: todos los configurados. */
 export function gestureRules(config: Config): ScoringRule[] {
-  return config.rules.slice(1).filter((r) => r.ralliesRequired === 1);
+  return config.rules;
 }
 
 export type ResolvedAction =
   | { kind: 'point' | 'minus' | 'undo' | 'none' }
   | { kind: 'rule'; rule: ScoringRule };
 
-/** Interpreta la acción de un gesto. Un modo borrado o no válido se trata como "sumar". */
+/** Interpreta la acción de un gesto. Un modo borrado se trata como "sumar". */
 export function resolveAction(config: Config, action: GestureAction): ResolvedAction {
   if (action.startsWith('rule:')) {
     const rule = gestureRules(config).find((r) => r.id === action.slice(5));
@@ -137,7 +137,12 @@ export function winSpecialRally(state: MatchState, config: Config, team: TeamId,
 export function applyGesture(state: MatchState, config: Config, team: TeamId, action: ResolvedAction): MatchState {
   switch (action.kind) {
     case 'point': return winRally(state, config, team);
-    case 'rule': return winSpecialRally(state, config, team, action.rule);
+    case 'rule':
+      // 1 jugada: puntos puntuales sin cambiar el modo activo.
+      // Varias jugadas: el progreso necesita el modo activo, así que se activa y cuenta la jugada.
+      return action.rule.ralliesRequired === 1
+        ? winSpecialRally(state, config, team, action.rule)
+        : winRally(selectRule(state, action.rule.id), config, team);
     case 'minus': return removePoint(state, team);
     default: return state;
   }
