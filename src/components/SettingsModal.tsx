@@ -1,10 +1,10 @@
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { DEFAULT_CONFIG, GESTURES, gestureRules, newRuleId, resolveAction } from '../logic';
 import type { Config, Gesture, GestureAction, ScoringRule, Team, TeamId } from '../types';
 import { F } from '../theme';
 import { Popup } from './Popup';
 import { RuleEditor, describeRule } from './RuleEditor';
-import { Btn, C, ColorPicker, Field, NumberPicker, Row, Section, Toggle } from './ui';
+import { Btn, C, ColorPicker, Field, NumberPicker, Row, Section, Select, Toggle } from './ui';
 
 interface Props {
   visible: boolean;
@@ -155,24 +155,13 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
           ];
           return (
             <View key={g} style={styles.gesture}>
-              <Row label={GESTURE_LABELS[g].label} hint={GESTURE_LABELS[g].hint} />
-              <View style={styles.chips}>
-                {options.map((o) => {
-                  const active = o.value === current;
-                  return (
-                    <Pressable
-                      key={o.value}
-                      onPress={() => set('gestures', { ...config.gestures, [g]: o.value })}
-                      style={[styles.chip, active && styles.chipActive]}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: active }}
-                      accessibilityLabel={`${GESTURE_LABELS[g].label}: ${o.label}`}
-                    >
-                      <Text style={[styles.chipText, active && styles.chipTextActive]}>{o.label}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <Select
+                label={GESTURE_LABELS[g].label}
+                hint={GESTURE_LABELS[g].hint}
+                value={current}
+                options={options}
+                onChange={(v) => set('gestures', { ...config.gestures, [g]: v })}
+              />
             </View>
           );
         })}
@@ -193,10 +182,5 @@ const styles = StyleSheet.create({
   help: { color: C.muted, fontFamily: F.regular, fontSize: 13, lineHeight: 19, paddingVertical: 10 },
   gesture: { borderTopWidth: 1, borderTopColor: C.line },
   warn: { color: C.volt, fontFamily: F.medium, fontSize: 13, lineHeight: 19, paddingBottom: 12 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 14 },
-  chip: { borderWidth: 1, borderColor: C.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
-  chipActive: { backgroundColor: C.volt, borderColor: C.volt },
-  chipText: { color: C.text, fontFamily: F.medium, fontSize: 14 },
-  chipTextActive: { color: C.onVolt },
   rule: { borderTopWidth: 1, borderTopColor: C.line, paddingVertical: 6 },
 });

@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { C, F } from '../theme';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
@@ -40,6 +42,53 @@ export function Stepper({ value, onChange, min = 1, max = 99 }: { value: number;
       <Btn small label="−" onPress={() => onChange(Math.max(min, value - 1))} />
       <Text style={s.stepValue}>{value}</Text>
       <Btn small label="+" onPress={() => onChange(Math.min(max, value + 1))} />
+    </View>
+  );
+}
+
+/**
+ * Desplegable: botón con el valor actual; al tocarlo, la lista se abre debajo
+ * (dentro del flujo, para que funcione igual dentro de ScrollView en iOS, Android y web).
+ */
+export function Select<T extends string>({ label, hint, value, options, onChange }: {
+  label: string; hint?: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((o) => o.value === value) ?? options[0];
+  return (
+    <View>
+      <Row label={label} hint={hint}>
+        <Pressable
+          onPress={() => setOpen((o) => !o)}
+          style={({ pressed }) => [s.select, open && s.selectOpen, pressed && { opacity: 0.7 }]}
+          accessibilityRole="button"
+          accessibilityLabel={`${label}: ${current.label}`}
+          accessibilityState={{ expanded: open }}
+        >
+          <Text style={s.selectText} numberOfLines={1}>{current.label}</Text>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={C.muted} />
+        </Pressable>
+      </Row>
+      {open && (
+        <Animated.View entering={FadeIn.duration(140)} style={s.options} accessibilityRole="radiogroup">
+          {options.map((o) => {
+            const active = o.value === value;
+            return (
+              <Pressable
+                key={o.value}
+                onPress={() => { onChange(o.value); setOpen(false); }}
+                style={({ pressed }) => [s.option, active && s.optionActive, pressed && { backgroundColor: C.line }]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={`${label}: ${o.label}`}
+              >
+                <Text style={[s.optionText, active && s.optionTextActive]}>{o.label}</Text>
+                {active && <Ionicons name="checkmark" size={18} color={C.volt} />}
+              </Pressable>
+            );
+          })}
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -110,6 +159,18 @@ export { isValidColor } from '../color';
 export { ColorPicker } from './ColorPicker';
 
 const s = StyleSheet.create({
+  select: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, maxWidth: 210, minWidth: 140,
+    backgroundColor: C.bg, borderWidth: 1, borderColor: C.line, borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 10, justifyContent: 'space-between',
+  },
+  selectOpen: { borderColor: C.brand },
+  selectText: { color: C.text, fontFamily: F.medium, fontSize: 15, flexShrink: 1 },
+  options: { backgroundColor: C.bg, borderWidth: 1, borderColor: C.line, borderRadius: 12, padding: 4, marginBottom: 12 },
+  option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 11, borderRadius: 8 },
+  optionActive: { backgroundColor: C.raised },
+  optionText: { color: C.text, fontFamily: F.regular, fontSize: 15 },
+  optionTextActive: { fontFamily: F.semibold },
   picker: { paddingBottom: 12 },
   presets: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   preset: { minWidth: 52, alignItems: 'center', borderWidth: 1, borderColor: C.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
