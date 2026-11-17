@@ -22,11 +22,14 @@ const DEVICES = [
   { dir: 'android-phone', land: [960, 540], scale: 2 }, // 1920×1080 / 1080×1920
 ];
 
-// Datos de ejemplo (equipos ficticios)
+// Colores del logo (assets/brand): oscuro, gris claro y azul
+const LOGO = { dark: '#111919', light: '#E1E1E1', blue: '#619EE8' };
+
+// Datos de ejemplo (equipos ficticios) con los colores del logo
 const baseConfig = {
   teams: {
-    a: { name: 'Halcones', bg: '#111111', fg: '#FFFFFF' },
-    b: { name: 'Tritones', bg: '#E63946', fg: '#FFFFFF' },
+    a: { name: 'Halcones', bg: LOGO.dark, fg: LOGO.light },
+    b: { name: 'Tritones', bg: LOGO.blue, fg: LOGO.dark },
   },
   autoSets: true, pointsPerSet: 25, winByTwo: true, matchEnd: true, setsToWin: 3, decidingSetPoints: 15,
 };
@@ -50,7 +53,7 @@ const SHOTS = [
   },
   {
     name: '6-colores', state: match({ points: { a: 3, b: 5 } }),
-    config: { teams: { a: { name: 'Halcones', bg: '#1276A0', fg: '#FFFFFF' }, b: { name: 'Tritones', bg: '#E63946', fg: '#FFFFFF' } } },
+    config: { teams: { a: { name: 'Halcones', bg: '#2A9D8F', fg: '#FFFFFF' }, b: { name: 'Tritones', bg: LOGO.blue, fg: LOGO.dark } } },
     action: async (p) => {
       await p.getByLabel('Menú').click(); await p.waitForTimeout(400);
       await p.getByLabel('Ajustes').click(); await p.waitForTimeout(500);
@@ -101,11 +104,11 @@ async function graphics(browser) {
     h1 { font: 700 54px/1 SG; color: #E1E1E1; margin: 20px 0 14px; letter-spacing: -1px; white-space: nowrap; }
     p { color: #94A3B8; font-size: 24px; margin: 0; }
     .icon svg { border-radius: 42px; display: block; }
-    .board { width: 300px; height: 200px; margin-left: auto; display: flex; border-radius: 22px; overflow: hidden; margin-right: 64px; transform: rotate(-4deg); box-shadow: 0 30px 60px -20px #000; }
+    .board { width: 300px; height: 200px; margin-left: auto; outline: 2px solid rgba(225,225,225,.14); outline-offset: -1px; display: flex; border-radius: 22px; overflow: hidden; margin-right: 64px; transform: rotate(-4deg); box-shadow: 0 30px 60px -20px #000; }
     .board div { flex: 1; display: grid; place-items: center; font: 700 108px/1 SG; color: #fff; }
   </style></head><body>
     <div class="text"><div class="icon">${icon}</div><h1>Clipeo Scoreboard</h1><p>Toca para sumar. Desliza para restar.</p></div>
-    <div class="board"><div style="background:#111111">22</div><div style="background:#E63946">19</div></div>
+    <div class="board"><div style="background:#0B1111;color:${LOGO.light}">22</div><div style="background:${LOGO.blue};color:${LOGO.dark}">19</div></div>
   </body></html>`;
   const p = await browser.newPage({ viewport: { width: 1024, height: 500 } });
   await p.setContent(html); await p.waitForTimeout(300);
