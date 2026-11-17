@@ -35,6 +35,8 @@ interface Props {
   /** Distancia del desplazamiento (ancho o alto del panel) */
   swapDistance: number;
   horizontal: boolean;
+  /** Si los controles (modo y menú) quedan debajo de este panel: reserva su espacio */
+  controlsBelow: boolean;
 }
 
 /** "+2" que sube y se desvanece sobre el panel. */
@@ -111,8 +113,12 @@ export function TeamPanel(p: Props) {
   const digits = Math.max(2, String(p.points).length);
   const small = Math.max(14, Math.min(28, Math.floor(Math.min(p.width, p.height) * 0.06)));
   // Espacio reservado arriba (nombre + sets) y abajo (progreso / controles)
-  const top = p.showName || p.showSets ? 16 + small * 2.4 : 0;
-  const bottom = 56;
+  // El número se centra en el espacio libre: entre la cabecera (nombre y sets) y lo que haya
+  // debajo. Con los controles debajo se reserva su sitio; si no, solo el de los puntos de
+  // progreso (fijo, para que el número no cambie de tamaño al cambiar de modo).
+  const top = p.showName || p.showSets ? 16 + small * 2.4 : 16;
+  const dotsBottom = p.controlsBelow ? 60 : 18;
+  const bottom = p.controlsBelow ? 56 : dotsBottom + small * 0.7 + 10;
   const fontSize = Math.floor(Math.min((p.height - top - bottom) * 1.05, (p.width * 0.9) / (digits * 0.62)));
   const fg = p.team.fg;
 
@@ -160,7 +166,7 @@ export function TeamPanel(p: Props) {
       ))}
 
       {p.required > 1 && (
-        <View style={styles.dots} pointerEvents="none">
+        <View style={[styles.dots, { bottom: dotsBottom }]} pointerEvents="none">
           {Array.from({ length: p.required }, (_, i) => (
             <View
               key={i}
@@ -199,7 +205,7 @@ const styles = StyleSheet.create({
     fontFamily: F.display, fontVariant: ['tabular-nums'], includeFontPadding: false,
     textAlign: 'center', letterSpacing: -2,
   },
-  dots: { position: 'absolute', bottom: 60, flexDirection: 'row', gap: 10 },
+  dots: { position: 'absolute', flexDirection: 'row', gap: 10 },
   dot: { borderWidth: 2, opacity: 0.9, overflow: 'hidden' },
   dotFill: { flex: 1 },
 });

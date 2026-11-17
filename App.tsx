@@ -163,6 +163,7 @@ export default function App() {
             swapDir={id === 'a' ? 1 : -1}
             swapDistance={landscape ? panelW : panelH}
             horizontal={landscape}
+            controlsBelow={landscape || (id === 'b') !== state.swapped}
             actions={actions}
             onGesture={(g) => onGesture(id, g)}
             team={safeTeam(config.teams[id], DEFAULT_CONFIG.teams[id])}
