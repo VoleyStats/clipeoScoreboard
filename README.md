@@ -105,7 +105,7 @@ npm start          # Expo: abre en Expo Go (iOS/Android) o pulsa "w" para web
 npm run web        # directamente en el navegador
 npm test           # tests de la lógica del marcador
 npm run typecheck
-npm run build:web  # exporta la web estática a dist/ (y mueve las fuentes fuera de node_modules,
+npm run build:web  # exporta la web estática a dist/ (Vercel usa este comando: vercel.json) (y mueve las fuentes fuera de node_modules,
                    # que Vercel no sube)
 ```
 
