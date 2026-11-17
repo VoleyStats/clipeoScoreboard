@@ -4,11 +4,6 @@ import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-nati
 
 export { C } from '../theme';
 
-/** Primero los colores de Clipeo, después algunos habituales en equipaciones. */
-export const SWATCHES = [
-  '#070A12', '#0F1524', '#E1E1E1', '#FFFFFF', '#3D6BFF', '#6E93FF', '#4BA0EC', '#CBFB45',
-  '#E63946', '#F77F00', '#FFD23F', '#2A9D8F', '#7209B7', '#F72585',
-];
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -78,38 +73,8 @@ export function Field({ value, onChange, placeholder }: { value: string; onChang
   );
 }
 
-const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
-
-export function ColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <View style={s.colorBlock}>
-      <View style={s.row}>
-        <Text style={[s.label, { flex: 1 }]}>{label}</Text>
-        <View style={[s.preview, { backgroundColor: HEX.test(value) ? value : 'transparent' }]} />
-        <TextInput
-          value={value}
-          onChangeText={(t) => {
-            const v = t.startsWith('#') ? t : `#${t}`;
-            if (v.length <= 7) onChange(v.toUpperCase());
-          }}
-          autoCapitalize="characters"
-          style={[s.input, s.hexInput]}
-        />
-      </View>
-      <View style={s.swatches}>
-        {SWATCHES.map((c) => (
-          <Pressable
-            key={c}
-            onPress={() => onChange(c)}
-            style={[s.swatch, { backgroundColor: c }, value.toUpperCase() === c && s.swatchActive]}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-export const isValidColor = (v: string) => HEX.test(v);
+export { isValidColor } from '../color';
+export { ColorPicker } from './ColorPicker';
 
 const s = StyleSheet.create({
   section: { marginBottom: 24 },
@@ -124,10 +89,4 @@ const s = StyleSheet.create({
   btnSmall: { paddingHorizontal: 0, paddingVertical: 0, width: 36, height: 36, justifyContent: 'center' },
   btnText: { color: C.text, fontSize: 16, fontFamily: F.semibold },
   input: { backgroundColor: C.bg, color: C.text, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, flex: 1, fontFamily: F.regular },
-  hexInput: { flex: 0, width: 100, fontVariant: ['tabular-nums'] },
-  colorBlock: { paddingBottom: 10 },
-  preview: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: C.line },
-  swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  swatch: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: C.line },
-  swatchActive: { borderWidth: 3, borderColor: C.volt },
 });

@@ -20,8 +20,13 @@ import type { Config, MatchState, Team, TeamId } from './src/types';
 import { C, F } from './src/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFonts } from 'expo-font';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
+// Importar cada peso por separado evita empaquetar toda la familia
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
+import { SpaceGrotesk_600SemiBold } from '@expo-google-fonts/space-grotesk/600SemiBold';
+import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
 
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   // Evita el "pull to refresh" y el rebote del navegador al deslizar hacia abajo.

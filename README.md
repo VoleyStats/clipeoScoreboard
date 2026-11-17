@@ -38,7 +38,7 @@ Cuando N > 1, bajo el número aparecen puntos que muestran el progreso de cada e
 
 ## Ajustes
 
-- Nombre, color de fondo y color de texto de cada equipo (paleta o código hex).
+- Nombre, color de fondo y color de texto de cada equipo: cualquier color (selector de tono / saturación / luz, código hex o colores rápidos).
 - Modos de puntuación: editar, añadir y borrar.
 - Mostrar/ocultar nombres y sets, vibración.
 - Fin de set automático (puntos por set, set decisivo, ganar por 2) y sets para ganar el partido.
@@ -52,11 +52,13 @@ Colores y tipografías de [clipeostats.com](https://clipeostats.com) (`src/theme
 | Token | Color | Uso |
 |---|---|---|
 | ink-950 | `#070A12` | Fondo de menús y popups |
-| card | `#0F1524` | Tarjetas, equipo local por defecto |
-| brand-500 | `#3D6BFF` | Botones primarios, equipo visitante por defecto |
+| card | `#0F1524` | Tarjetas |
+| brand-500 | `#3D6BFF` | Botones primarios |
 | brand-400 | `#6E93FF` | Enlaces / acciones secundarias |
 | volt-400 | `#CBFB45` | Modo especial activo, selección |
 | slate-200 / 400 | `#E2E8F0` / `#94A3B8` | Texto / texto secundario |
+
+La paleta se aplica a la interfaz (menús, popups, botones); los colores de los equipos son libres.
 
 Tipografías: **Space Grotesk** (números y títulos) e **Inter** (interfaz).
 
@@ -70,7 +72,8 @@ npm start          # Expo: abre en Expo Go (iOS/Android) o pulsa "w" para web
 npm run web        # directamente en el navegador
 npm test           # tests de la lógica del marcador
 npm run typecheck
-npm run build:web  # exporta la web estática a dist/
+npm run build:web  # exporta la web estática a dist/ (y mueve las fuentes fuera de node_modules,
+                   # que Vercel no sube)
 ```
 
 Builds nativos para tiendas: `npx eas-cli@latest build -p ios|android`.
