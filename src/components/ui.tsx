@@ -1,8 +1,8 @@
-import { type ReactNode, useState } from 'react';
+import { type ComponentRef, type ReactNode, useRef, useState } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { C, F } from '../theme';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
 export { C } from '../theme';
 
@@ -46,50 +46,83 @@ export function Stepper({ value, onChange, min = 1, max = 99 }: { value: number;
   );
 }
 
+const OPTION_H = 44;
+
 /**
- * Desplegable: botón con el valor actual; al tocarlo, la lista se abre debajo
- * (dentro del flujo, para que funcione igual dentro de ScrollView en iOS, Android y web).
+ * Desplegable: botón con el valor actual. La lista se abre como capa flotante (overlay)
+ * anclada al botón, sin mover el resto de la interfaz; si no cabe debajo, se abre hacia arriba.
+ * Va en un Modal transparente para quedar por encima de todo (también de ScrollView y popups)
+ * igual en iOS, Android y web.
  */
 export function Select<T extends string>({ label, hint, value, options, onChange }: {
   label: string; hint?: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<ComponentRef<typeof View>>(null);
+  const [anchor, setAnchor] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const { width: winW, height: winH } = useWindowDimensions();
   const current = options.find((o) => o.value === value) ?? options[0];
+
+  const openMenu = () =>
+    anchorRef.current?.measureInWindow((x, y, w, h) => setAnchor({ x, y, w, h }));
+  const close = () => setAnchor(null);
+
+  // Posición de la lista: debajo del botón, alineada a su derecha; arriba si no cabe
+  let menu: { left: number; top: number; width: number; maxHeight: number } | null = null;
+  if (anchor) {
+    const width = Math.min(Math.max(anchor.w, 220), winW - 24);
+    const listH = options.length * OPTION_H + 10;
+    const below = winH - (anchor.y + anchor.h) - 16;
+    const above = anchor.y - 16;
+    const openUp = listH > below && above > below;
+    const maxHeight = Math.min(listH, openUp ? above : below);
+    menu = {
+      width,
+      maxHeight,
+      left: Math.max(12, Math.min(anchor.x + anchor.w - width, winW - width - 12)),
+      top: openUp ? anchor.y - maxHeight - 6 : anchor.y + anchor.h + 6,
+    };
+  }
+
   return (
-    <View>
-      <Row label={label} hint={hint}>
-        <Pressable
-          onPress={() => setOpen((o) => !o)}
-          style={({ pressed }) => [s.select, open && s.selectOpen, pressed && { opacity: 0.7 }]}
-          accessibilityRole="button"
-          accessibilityLabel={`${label}: ${current.label}`}
-          accessibilityState={{ expanded: open }}
-        >
-          <Text style={s.selectText} numberOfLines={1}>{current.label}</Text>
-          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={C.muted} />
-        </Pressable>
-      </Row>
-      {open && (
-        <Animated.View entering={FadeIn.duration(140)} style={s.options} accessibilityRole="radiogroup">
-          {options.map((o) => {
-            const active = o.value === value;
-            return (
-              <Pressable
-                key={o.value}
-                onPress={() => { onChange(o.value); setOpen(false); }}
-                style={({ pressed }) => [s.option, active && s.optionActive, pressed && { backgroundColor: C.line }]}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: active }}
-                accessibilityLabel={`${label}: ${o.label}`}
-              >
-                <Text style={[s.optionText, active && s.optionTextActive]}>{o.label}</Text>
-                {active && <Ionicons name="checkmark" size={18} color={C.volt} />}
-              </Pressable>
-            );
-          })}
-        </Animated.View>
-      )}
-    </View>
+    <Row label={label} hint={hint}>
+      <Pressable
+        ref={anchorRef}
+        onPress={openMenu}
+        style={({ pressed }) => [s.select, anchor && s.selectOpen, pressed && { opacity: 0.7 }]}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${current.label}`}
+        accessibilityState={{ expanded: !!anchor }}
+      >
+        <Text style={s.selectText} numberOfLines={1}>{current.label}</Text>
+        <Ionicons name={anchor ? 'chevron-up' : 'chevron-down'} size={16} color={C.muted} />
+      </Pressable>
+      <Modal visible={!!anchor} transparent animationType="none" onRequestClose={close} statusBarTranslucent
+        supportedOrientations={['portrait', 'landscape']}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Cerrar lista" />
+        {menu && (
+          <Animated.View entering={FadeIn.duration(120)} style={[s.options, menu]} accessibilityRole="radiogroup">
+            <ScrollView bounces={false}>
+              {options.map((o) => {
+                const active = o.value === value;
+                return (
+                  <Pressable
+                    key={o.value}
+                    onPress={() => { onChange(o.value); close(); }}
+                    style={({ pressed }) => [s.option, active && s.optionActive, pressed && { backgroundColor: C.line }]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: active }}
+                    accessibilityLabel={`${label}: ${o.label}`}
+                  >
+                    <Text style={[s.optionText, active && s.optionTextActive]} numberOfLines={1}>{o.label}</Text>
+                    {active && <Ionicons name="checkmark" size={18} color={C.volt} />}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </Animated.View>
+        )}
+      </Modal>
+    </Row>
   );
 }
 
@@ -166,8 +199,11 @@ const s = StyleSheet.create({
   },
   selectOpen: { borderColor: C.brand },
   selectText: { color: C.text, fontFamily: F.medium, fontSize: 15, flexShrink: 1 },
-  options: { backgroundColor: C.bg, borderWidth: 1, borderColor: C.line, borderRadius: 12, padding: 4, marginBottom: 12 },
-  option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 11, borderRadius: 8 },
+  options: {
+    position: 'absolute', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, borderRadius: 12, padding: 4,
+    shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 12,
+  },
+  option: { height: OPTION_H, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingHorizontal: 12, borderRadius: 8 },
   optionActive: { backgroundColor: C.raised },
   optionText: { color: C.text, fontFamily: F.regular, fontSize: 15 },
   optionTextActive: { fontFamily: F.semibold },
