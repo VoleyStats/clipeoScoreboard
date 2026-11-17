@@ -13,11 +13,11 @@ La pantalla principal son solo los números, a pantalla completa. En horizontal 
 
 Abajo en el centro:
 - **Píldora de modo**: elige el modo de puntuación activo o crea uno nuevo (**+ Nuevo modo**).
-- **•••**: menú rápido:
-  - **Reiniciar puntos**: suma 1 set al equipo que va ganando y pone los puntos a 0 (si hay empate, solo reinicia).
-  - **Nuevo partido**: puntos y sets a 0 (pide confirmación).
-  - **Cambiar lados**.
-  - **Ajustes** (popup).
+- **•••**: fila de iconos:
+  - ↻ **Reiniciar puntos**: suma 1 set al equipo que va ganando y pone los puntos a 0 (si hay empate, solo reinicia).
+  - 🗑 **Nuevo partido**: puntos y sets a 0 (segundo toque para confirmar).
+  - ⇄ **Cambiar lados**.
+  - ⚙ **Ajustes** (popup).
 
 ## Modos de puntuación
 
@@ -45,6 +45,23 @@ Cuando N > 1, bajo el número aparecen puntos que muestran el progreso de cada e
 
 Todo se guarda en el dispositivo; la pantalla no se apaga mientras el marcador está abierto.
 
+## Identidad visual
+
+Colores y tipografías de [clipeostats.com](https://clipeostats.com) (`src/theme.ts`):
+
+| Token | Color | Uso |
+|---|---|---|
+| ink-950 | `#070A12` | Fondo de menús y popups |
+| card | `#0F1524` | Tarjetas, equipo local por defecto |
+| brand-500 | `#3D6BFF` | Botones primarios, equipo visitante por defecto |
+| brand-400 | `#6E93FF` | Enlaces / acciones secundarias |
+| volt-400 | `#CBFB45` | Modo especial activo, selección |
+| slate-200 / 400 | `#E2E8F0` / `#94A3B8` | Texto / texto secundario |
+
+Tipografías: **Space Grotesk** (números y títulos) e **Inter** (interfaz).
+
+El icono combina el zigzag de VoleyStats, el balón de Clipeo y las dos mitades del marcador.
+
 ## Desarrollo
 
 ```bash
@@ -67,7 +84,8 @@ src/types.ts                 tipos
 src/storage.ts               persistencia (AsyncStorage)
 src/useTapSwipe.ts           gesto tap / deslizar hacia abajo
 src/components/TeamPanel.tsx mitad de pantalla de cada equipo
-src/components/MainMenu.tsx   menú rápido •••
+src/components/MainMenu.tsx   menú de iconos •••
+src/theme.ts                 paleta y tipografías de Clipeo
 src/components/RulePicker.tsx selector de modo
 src/components/NewRuleModal.tsx popup para crear un modo
 src/components/RuleEditor.tsx campos de un modo

@@ -1,19 +1,13 @@
 import type { ReactNode } from 'react';
+import { C, F } from '../theme';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
-export const C = {
-  bg: '#0E0E10',
-  card: '#1A1A1E',
-  line: '#2A2A30',
-  text: '#F2F2F4',
-  muted: '#8B8B95',
-  accent: '#FFD23F',
-  danger: '#FF5A5F',
-};
+export { C } from '../theme';
 
+/** Primero los colores de Clipeo, después algunos habituales en equipaciones. */
 export const SWATCHES = [
-  '#111111', '#FFFFFF', '#E63946', '#F77F00', '#FFD23F', '#2A9D8F',
-  '#06D6A0', '#118AB2', '#3A0CA3', '#7209B7', '#F72585', '#6C757D',
+  '#070A12', '#0F1524', '#E1E1E1', '#FFFFFF', '#3D6BFF', '#6E93FF', '#4BA0EC', '#CBFB45',
+  '#E63946', '#F77F00', '#FFD23F', '#2A9D8F', '#7209B7', '#F72585',
 ];
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -40,7 +34,7 @@ export function Row({ label, hint, children }: { label: string; hint?: string; c
 export function Toggle({ label, hint, value, onChange }: { label: string; hint?: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <Row label={label} hint={hint}>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: C.accent, false: C.line }} thumbColor="#fff" {...({ activeThumbColor: "#fff" } as object)} />
+      <Switch value={value} onValueChange={onChange} trackColor={{ true: C.brand, false: C.line }} thumbColor="#fff" {...({ activeThumbColor: "#fff" } as object)} />
     </Row>
   );
 }
@@ -62,12 +56,12 @@ export function Btn({ label, onPress, kind = 'default', small }: { label: string
       style={({ pressed }) => [
         s.btn,
         small && s.btnSmall,
-        kind === 'primary' && { backgroundColor: C.accent },
+        kind === 'primary' && { backgroundColor: C.brand },
         kind === 'danger' && { backgroundColor: 'transparent', borderColor: C.danger, borderWidth: 1 },
         pressed && { opacity: 0.6 },
       ]}
     >
-      <Text style={[s.btnText, kind === 'primary' && { color: '#111' }, kind === 'danger' && { color: C.danger }]}>{label}</Text>
+      <Text style={[s.btnText, kind === 'primary' && { color: C.onBrand }, kind === 'danger' && { color: C.danger }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -119,21 +113,21 @@ export const isValidColor = (v: string) => HEX.test(v);
 
 const s = StyleSheet.create({
   section: { marginBottom: 24 },
-  sectionTitle: { color: C.muted, fontSize: 12, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8, marginLeft: 4 },
-  card: { backgroundColor: C.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4 },
+  sectionTitle: { color: C.muted, fontSize: 12, fontFamily: F.bold, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8, marginLeft: 4 },
+  card: { backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.line, paddingHorizontal: 14, paddingVertical: 4 },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 52, gap: 12, paddingVertical: 6 },
-  label: { color: C.text, fontSize: 16 },
-  hint: { color: C.muted, fontSize: 12, marginTop: 2 },
+  label: { color: C.text, fontSize: 16, fontFamily: F.regular },
+  hint: { color: C.muted, fontSize: 12, marginTop: 2, fontFamily: F.regular },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  stepValue: { color: C.text, fontSize: 18, fontWeight: '700', minWidth: 28, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  stepValue: { color: C.text, fontSize: 18, fontFamily: F.bold, minWidth: 28, textAlign: 'center', fontVariant: ['tabular-nums'] },
   btn: { backgroundColor: C.line, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, alignItems: 'center' },
   btnSmall: { paddingHorizontal: 0, paddingVertical: 0, width: 36, height: 36, justifyContent: 'center' },
-  btnText: { color: C.text, fontSize: 16, fontWeight: '600' },
-  input: { backgroundColor: C.bg, color: C.text, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, flex: 1 },
+  btnText: { color: C.text, fontSize: 16, fontFamily: F.semibold },
+  input: { backgroundColor: C.bg, color: C.text, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, flex: 1, fontFamily: F.regular },
   hexInput: { flex: 0, width: 100, fontVariant: ['tabular-nums'] },
   colorBlock: { paddingBottom: 10 },
   preview: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: C.line },
   swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   swatch: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: C.line },
-  swatchActive: { borderWidth: 3, borderColor: C.accent },
+  swatchActive: { borderWidth: 3, borderColor: C.volt },
 });

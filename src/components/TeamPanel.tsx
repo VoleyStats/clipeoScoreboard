@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useTapSwipe } from '../useTapSwipe';
 import type { Team } from '../types';
+import { F } from '../theme';
 
 interface Props {
   team: Team;
@@ -91,12 +92,12 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 16, left: 16, right: 16,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12,
   },
-  name: { flexShrink: 1, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase', opacity: 0.85 },
+  name: { flexShrink: 1, fontFamily: F.semibold, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.85 },
   sets: { borderWidth: 2, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, opacity: 0.9 },
-  setsText: { fontWeight: '700', fontVariant: ['tabular-nums'] },
+  setsText: { fontFamily: F.display, fontVariant: ['tabular-nums'] },
   points: {
-    fontWeight: '800', fontVariant: ['tabular-nums'], includeFontPadding: false,
-    textAlign: 'center', letterSpacing: -4,
+    fontFamily: F.display, fontVariant: ['tabular-nums'], includeFontPadding: false,
+    textAlign: 'center', letterSpacing: -2,
   },
   dots: { position: 'absolute', bottom: 60, flexDirection: 'row', gap: 10 },
   dot: { borderWidth: 2, opacity: 0.9 },

@@ -10,8 +10,8 @@ export const DEFAULT_RULES: ScoringRule[] = [
 
 export const DEFAULT_CONFIG: Config = {
   teams: {
-    a: { name: 'Local', bg: '#111111', fg: '#FFFFFF' },
-    b: { name: 'Visitante', bg: '#E63946', fg: '#FFFFFF' },
+    a: { name: 'Local', bg: '#0F1524', fg: '#E1E1E1' },
+    b: { name: 'Visitante', bg: '#3D6BFF', fg: '#FFFFFF' },
   },
   rules: DEFAULT_RULES,
   showNames: true,

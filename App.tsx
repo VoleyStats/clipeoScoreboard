@@ -17,11 +17,16 @@ import {
 } from './src/logic';
 import { load, saveConfig, saveState } from './src/storage';
 import type { Config, MatchState, Team, TeamId } from './src/types';
+import { C, F } from './src/theme';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFonts } from 'expo-font';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
   // Evita el "pull to refresh" y el rebote del navegador al deslizar hacia abajo.
   const style = document.createElement('style');
-  style.textContent = 'html,body{overscroll-behavior:none;overflow:hidden;background:#000}';
+  style.textContent = 'html,body{overscroll-behavior:none;overflow:hidden;background:#070A12}';
   document.head.appendChild(style);
 }
 
@@ -41,6 +46,11 @@ export default function App() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [state, setState] = useState<MatchState>(() => initialState(DEFAULT_CONFIG));
   const [ready, setReady] = useState(false);
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold,
+    SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold,
+    ...Ionicons.font,
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -69,6 +79,9 @@ export default function App() {
     setConfig(c);
     setState((s) => reconcile(s, c));
   };
+
+  // Si las fuentes fallan se usa la del sistema
+  if (!fontsLoaded && !fontError) return <View style={styles.root} />;
 
   const landscape = width >= height;
   const panelW = landscape ? width / 2 : width;
@@ -104,16 +117,17 @@ export default function App() {
 
         <View style={styles.center} pointerEvents="box-none">
           <Pressable
-              onPress={() => setPickerOpen(true)}
-              style={[styles.pill, rule.id !== config.rules[0].id && styles.pillActive]}
-              hitSlop={8}
-            >
-              <Text style={[styles.pillText, rule.id !== config.rules[0].id && { color: '#111' }]} numberOfLines={1}>
-                {rule.name}
-              </Text>
+            onPress={() => setPickerOpen(true)}
+            style={[styles.pill, rule.id !== config.rules[0].id && styles.pillActive]}
+            hitSlop={8}
+            accessibilityLabel="Modo de puntuación"
+          >
+            <Text style={[styles.pillText, rule.id !== config.rules[0].id && { color: C.onVolt }]} numberOfLines={1}>
+              {rule.name}
+            </Text>
           </Pressable>
           <Pressable onPress={() => setMenuOpen(true)} style={styles.gear} hitSlop={12} accessibilityLabel="Menú">
-            <Text style={styles.gearText}>•••</Text>
+            <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255,255,255,0.9)" />
           </Pressable>
         </View>
       </View>
@@ -155,20 +169,19 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000' },
+  root: { flex: 1, backgroundColor: C.bg },
   center: {
     position: 'absolute', bottom: 14, left: 0, right: 0,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
   },
   pill: {
-    backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 999,
-    paddingHorizontal: 14, paddingVertical: 7, maxWidth: 200,
+    backgroundColor: 'rgba(7,10,18,0.55)', borderRadius: 999,
+    paddingHorizontal: 14, height: 32, justifyContent: 'center', maxWidth: 200,
   },
-  pillActive: { backgroundColor: '#FFD23F' },
-  pillText: { color: '#fff', fontSize: 13, fontWeight: '700', letterSpacing: 0.5 },
+  pillActive: { backgroundColor: C.volt },
+  pillText: { color: '#fff', fontSize: 13, fontFamily: F.bold, letterSpacing: 0.5 },
   gear: {
-    backgroundColor: 'rgba(0,0,0,0.35)', borderRadius: 999,
-    width: 44, height: 28, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(7,10,18,0.55)', borderRadius: 999,
+    width: 48, height: 32, alignItems: 'center', justifyContent: 'center',
   },
-  gearText: { color: 'rgba(255,255,255,0.85)', fontSize: 12, letterSpacing: 2, fontWeight: '900' },
 });

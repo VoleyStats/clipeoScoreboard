@@ -5,6 +5,7 @@ import type { ScoringRule } from '../types';
 import { Popup } from './Popup';
 import { RuleEditor, describeRule } from './RuleEditor';
 import { Btn, C } from './ui';
+import { F } from '../theme';
 
 const blank = (): ScoringRule => ({
   id: newRuleId(), name: 'Nuevo modo', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true,
@@ -44,6 +45,6 @@ export function NewRuleModal({ visible, onCreate: create, onClose: close }: Prop
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: C.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4 },
-  summary: { color: C.accent, fontSize: 14, fontWeight: '700', textAlign: 'center', marginTop: 14 },
+  card: { backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.line, paddingHorizontal: 14, paddingVertical: 4 },
+  summary: { color: C.volt, fontSize: 14, fontFamily: F.bold, textAlign: 'center', marginTop: 14 },
 });

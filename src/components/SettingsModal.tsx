@@ -1,6 +1,7 @@
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { DEFAULT_CONFIG, newRuleId } from '../logic';
 import type { Config, ScoringRule, Team, TeamId } from '../types';
+import { F } from '../theme';
 import { Popup } from './Popup';
 import { RuleEditor, describeRule } from './RuleEditor';
 import { Btn, C, ColorPicker, Field, Row, Section, Stepper, Toggle } from './ui';
@@ -108,6 +109,6 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  help: { color: C.muted, fontSize: 13, lineHeight: 19, paddingVertical: 10 },
+  help: { color: C.muted, fontFamily: F.regular, fontSize: 13, lineHeight: 19, paddingVertical: 10 },
   rule: { borderTopWidth: 1, borderTopColor: C.line, paddingVertical: 6 },
 });
