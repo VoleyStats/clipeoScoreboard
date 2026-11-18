@@ -54,8 +54,17 @@
             "backgroundColor": "#111919"
           }
         }
+      ],
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["es", "en"],
+            "android": ["es", "en"]
+          }
+        }
       ]
     ],
-    "description": "Marcador de voleibol minimalista: n\u00fameros a pantalla completa, gestos configurables y modos de puntuaci\u00f3n."
+    "description": "Marcador de voleibol minimalista: números a pantalla completa, gestos configurables y modos de puntuación."
   }
 }

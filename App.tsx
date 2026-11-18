@@ -13,8 +13,9 @@ import { RulePicker } from './src/components/RulePicker';
 import { SettingsModal } from './src/components/SettingsModal';
 import { TeamPanel } from './src/components/TeamPanel';
 import { isValidColor } from './src/components/ui';
+import { DEFAULTS as DEFAULT_CONFIG, t } from './src/i18n';
 import {
-  DEFAULT_CONFIG, GESTURES, activeRule, addSet, applyGesture, closeSet, initialState, matchWinner, reconcile, removeSet, resolveAction,
+  GESTURES, activeRule, addSet, applyGesture, closeSet, initialState, matchWinner, reconcile, removeSet, resolveAction,
   resetMatch, selectRule,
 } from './src/logic';
 import { load, saveConfig, saveState } from './src/storage';
@@ -187,7 +188,7 @@ export default function App() {
               onPress={() => setPickerOpen(true)}
               style={[styles.pill, rule.id !== config.rules[0].id && styles.pillActive]}
               hitSlop={8}
-              accessibilityLabel="Modo de puntuación"
+              accessibilityLabel={t.scoringMode}
             >
               <Animated.Text
                 key={rule.id}
@@ -199,7 +200,7 @@ export default function App() {
               </Animated.Text>
             </Pressable>
           </Animated.View>
-          <Pressable onPress={() => setMenuOpen(true)} style={styles.gear} hitSlop={12} accessibilityLabel="Menú">
+          <Pressable onPress={() => setMenuOpen(true)} style={styles.gear} hitSlop={12} accessibilityLabel={t.menu}>
             <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255,255,255,0.9)" />
           </Pressable>
         </Animated.View>

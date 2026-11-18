@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { type GestureResponderEvent, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { type HSL, hexToHsl, hslToHex, isValidColor } from '../color';
+import { t } from '../i18n';
 import { C, F } from '../theme';
 
 /** Colores rápidos genéricos (no ligados a ninguna marca). */
@@ -80,18 +81,18 @@ export function ColorPicker({ label, value, onChange }: { label: string; value: 
         <Pressable
           onPress={() => setOpen((o) => !o)}
           style={[styles.preview, { backgroundColor: isValidColor(value) ? value : 'transparent' }]}
-          accessibilityLabel={`Personalizar color ${label}`}
+          accessibilityLabel={t.customizeColor(label)}
         />
         <TextInput
           value={value}
-          onChangeText={(t) => {
-            const v = t.startsWith('#') ? t : `#${t}`;
+          onChangeText={(txt) => {
+            const v = txt.startsWith('#') ? txt : `#${txt}`;
             if (v.length <= 7) onChange(v.toUpperCase());
           }}
           autoCapitalize="characters"
           style={styles.hex}
         />
-        <Pressable onPress={() => setOpen((o) => !o)} hitSlop={8} style={styles.toggle} accessibilityLabel="Selector de color">
+        <Pressable onPress={() => setOpen((o) => !o)} hitSlop={8} style={styles.toggle} accessibilityLabel={t.colorPicker}>
           <Ionicons name={open ? 'chevron-up' : 'color-palette-outline'} size={20} color={C.text} />
         </Pressable>
       </View>
@@ -106,9 +107,9 @@ export function ColorPicker({ label, value, onChange }: { label: string; value: 
       </View>
       {open && (
         <View style={styles.sliders}>
-          <Slider label="Tono" value={hsl.h} max={360} colorAt={(t) => hslToHex({ h: t * 360, s: 100, l: 50 })} onChange={(h) => setFromHsl({ h })} />
-          <Slider label="Saturación" value={hsl.s} max={100} colorAt={(t) => hslToHex({ ...hsl, s: t * 100 })} onChange={(s) => setFromHsl({ s })} />
-          <Slider label="Luz" value={hsl.l} max={100} colorAt={(t) => hslToHex({ ...hsl, l: t * 100 })} onChange={(l) => setFromHsl({ l })} />
+          <Slider label={t.hue} value={hsl.h} max={360} colorAt={(t) => hslToHex({ h: t * 360, s: 100, l: 50 })} onChange={(h) => setFromHsl({ h })} />
+          <Slider label={t.saturation} value={hsl.s} max={100} colorAt={(t) => hslToHex({ ...hsl, s: t * 100 })} onChange={(s) => setFromHsl({ s })} />
+          <Slider label={t.lightness} value={hsl.l} max={100} colorAt={(t) => hslToHex({ ...hsl, l: t * 100 })} onChange={(l) => setFromHsl({ l })} />
         </View>
       )}
     </View>

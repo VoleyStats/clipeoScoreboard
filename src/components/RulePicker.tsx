@@ -3,6 +3,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { backdropIn, popIn } from '../motion';
 import type { ScoringRule } from '../types';
 import { describeRule } from './RuleEditor';
+import { t } from '../i18n';
 import { C, F } from '../theme';
 
 interface Props {
@@ -20,7 +21,7 @@ export function RulePicker({ visible, rules, activeId, onSelect, onCreate, onClo
       <Animated.View entering={backdropIn} style={{ flex: 1 }}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View entering={popIn} style={styles.sheet} onStartShouldSetResponder={() => true}>
-          <Text style={styles.title}>Modo de puntuación</Text>
+          <Text style={styles.title}>{t.scoringMode}</Text>
           {rules.map((r, i) => {
             const active = r.id === activeId;
             return (
@@ -36,7 +37,7 @@ export function RulePicker({ visible, rules, activeId, onSelect, onCreate, onClo
             );
           })}
           <Pressable onPress={onCreate} style={({ pressed }) => [styles.item, styles.create, pressed && { opacity: 0.6 }]}>
-            <Text style={[styles.name, { color: C.brandLight }]}>+ Nuevo modo</Text>
+            <Text style={[styles.name, { color: C.brandLight }]}>{t.createRule}</Text>
           </Pressable>
         </Animated.View>
       </Pressable>
