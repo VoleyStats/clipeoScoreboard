@@ -16,6 +16,12 @@
       },
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleLocalizations": [
+          "es",
+          "en"
+        ]
       }
     },
     "android": {
@@ -59,12 +65,24 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": ["es", "en"],
-            "android": ["es", "en"]
+            "ios": [
+              "es",
+              "en"
+            ],
+            "android": [
+              "es",
+              "en"
+            ]
           }
         }
       ]
     ],
-    "description": "Marcador de voleibol minimalista: números a pantalla completa, gestos configurables y modos de puntuación."
+    "description": "Marcador de voleibol minimalista: números a pantalla completa, gestos configurables y modos de puntuación.",
+    "extra": {
+      "eas": {
+        "projectId": "761fc5cf-e0ae-4631-a57c-91209955ee65"
+      }
+    },
+    "owner": "pauhdr"
   }
 }
