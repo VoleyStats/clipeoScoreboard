@@ -6,6 +6,20 @@
 <title>Clipeo Scoreboard · Política de privacidad / Privacy Policy</title>
 <meta name="description" content="Política de privacidad de Clipeo Scoreboard. La app no recopila datos personales.">
 <link rel="icon" href="/favicon.ico">
+<link rel="alternate" hreflang="es" href="https://scoreboard.clipeostats.com/privacy?lang=es">
+<link rel="alternate" hreflang="en" href="https://scoreboard.clipeostats.com/privacy?lang=en">
+<script>
+  // Idioma: ?lang=es|en; si no viene, el del navegador (español → es, cualquier otro → en).
+  // Sin JavaScript se ven los dos idiomas, uno debajo del otro.
+  (function () {
+    var q = new URLSearchParams(location.search).get('lang');
+    var nav = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
+    var lang = q === 'es' || q === 'en' ? q : nav.indexOf('es') === 0 ? 'es' : 'en';
+    document.documentElement.lang = lang;
+    document.documentElement.setAttribute('data-lang', lang);
+    document.title = lang === 'es' ? 'Clipeo Scoreboard · Política de privacidad' : 'Clipeo Scoreboard · Privacy Policy';
+  })();
+</script>
 <style>
   :root {
     --bg: #070A12; --surface: #0F1524; --line: #232C45; --fg: #E2E8F0; --muted: #94A3B8; --brand: #6E93FF;
@@ -30,6 +44,10 @@
   a { color: var(--brand); }
   .summary { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 16px 0; }
   hr { border: 0; border-top: 1px solid var(--line); margin: 48px 0; }
+  nav a[aria-current="page"] { background: var(--brand); border-color: var(--brand); color: var(--bg); }
+  /* Con idioma elegido se muestra solo esa versión */
+  html[data-lang] hr, html[data-lang] .both { display: none; }
+  html[data-lang="es"] [data-only="en"], html[data-lang="en"] [data-only="es"] { display: none; }
 </style>
 </head>
 <body>
@@ -38,12 +56,19 @@
     <img src="/apple-touch-icon.png" alt="" onerror="this.remove()">
     <div>
       <h1>Clipeo Scoreboard</h1>
-      <div class="muted">Política de privacidad · Privacy Policy</div>
+      <div class="muted both">Política de privacidad · Privacy Policy</div>
+      <div class="muted" data-only="es" lang="es">Política de privacidad</div>
+      <div class="muted" data-only="en" lang="en">Privacy Policy</div>
     </div>
   </header>
-  <nav><a href="#es">Español</a><a href="#en">English</a></nav>
+  <nav><a href="?lang=es" hreflang="es" lang="es" data-lang-link="es">Español</a><a href="?lang=en" hreflang="en" lang="en" data-lang-link="en">English</a></nav>
+  <script>
+    document.querySelectorAll('[data-lang-link]').forEach(function (a) {
+      if (a.getAttribute('data-lang-link') === document.documentElement.lang) a.setAttribute('aria-current', 'page');
+    });
+  </script>
 
-  <section id="es" lang="es">
+  <section id="es" lang="es" data-only="es">
     <h2>Política de privacidad</h2>
     <p class="muted">Última actualización: 17 de noviembre de 2026</p>
     <div class="summary"><strong>En resumen:</strong> Clipeo Scoreboard no recopila, no envía y no comparte datos personales. Todo lo que configuras y el marcador se guardan solo en tu dispositivo.</div>
@@ -82,7 +107,7 @@
 
   <hr>
 
-  <section id="en" lang="en">
+  <section id="en" lang="en" data-only="en">
     <h2>Privacy Policy</h2>
     <p class="muted">Last updated: November 17, 2026</p>
     <div class="summary"><strong>In short:</strong> Clipeo Scoreboard does not collect, send or share personal data. Your settings and the score are stored only on your device.</div>
