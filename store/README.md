@@ -51,7 +51,7 @@ Recursos creativos opcionales que el App Store muestra arriba de la ficha (heade
 - [ ] Cuenta de **Expo** (gratis): https://expo.dev/signup
 - [ ] **Apple Developer Program** (99 $/año): https://developer.apple.com/programs/
 - [ ] **Google Play Console** (25 $ una vez): https://play.google.com/console/signup
-- [ ] Confirmar el identificador **`com.voleystats.clipeoscoreboard`** (iOS y Android). No se puede cambiar después de publicar.
+- [x] Identificadores: iOS **`com.clipeostats.scoreboard`** (app de App Store Connect con Apple ID `6835842278`, fijado como `ascAppId` en `eas.json`), Android **`com.voleystats.clipeoscoreboard`**. No se pueden cambiar después de publicar.
 - [ ] La URL de la política de privacidad tiene que abrirse **sin iniciar sesión** (ver «Pendiente» al final).
 
 ## 2. Vincular el proyecto con Expo (una vez)

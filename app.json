@@ -8,7 +8,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.voleystats.clipeoscoreboard",
+      "bundleIdentifier": "com.clipeostats.scoreboard",
       "icon": {
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png",
