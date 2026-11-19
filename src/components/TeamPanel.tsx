@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
-  Easing, Keyframe, type SharedValue, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming,
-  ZoomIn, ZoomOut,
+  Easing, interpolateColor, Keyframe, type SharedValue, useAnimatedStyle, useSharedValue, withSequence, withSpring,
+  withTiming, ZoomIn, ZoomOut,
 } from 'react-native-reanimated';
+import type { PanelLayout } from '../layout';
 import { MOTION } from '../motion';
 import type { ResolvedAction } from '../logic';
 import { type GestureHandlers, useGestures } from '../useTapSwipe';
@@ -15,11 +16,17 @@ interface Props {
   team: Team;
   points: number;
   sets: number;
-  /** Progreso hacia la regla activa (solo se muestra si required > 1) */
-  progress: number;
-  required: number;
-  width: number;
-  height: number;
+  /** Puntos de progreso bajo el número (modo de varias jugadas o recuperar el saque) */
+  dots: { count: number; filled: number } | null;
+  /** Medidas calculadas para la posición que ocupa en pantalla (src/layout.ts) */
+  layout: PanelLayout;
+  fontSize: number;
+  lineHeight: number;
+  /** Este equipo saca */
+  serving: boolean;
+  showServe: boolean;
+  /** Tocar el nombre: elegir que saque este equipo */
+  onServe: () => void;
   showName: boolean;
   showSets: boolean;
   winner: boolean;
@@ -35,8 +42,6 @@ interface Props {
   /** Distancia del desplazamiento (ancho o alto del panel) */
   swapDistance: number;
   horizontal: boolean;
-  /** Si los controles (modo y menú) quedan debajo de este panel: reserva su espacio */
-  controlsBelow: boolean;
 }
 
 /** "+2" que sube y se desvanece sobre el panel. */
@@ -91,6 +96,14 @@ export function TeamPanel(p: Props) {
   }, [p.sets, setScale]);
   const setsStyle = useAnimatedStyle(() => ({ transform: [{ scale: setScale.get() }] }));
 
+  // Saque: el círculo de sets se pinta en negativo (fondo del color del texto, número del color de fondo)
+  const fg = p.team.fg;
+  const serveOn = p.showServe && p.serving;
+  const serve = useSharedValue(serveOn ? 1 : 0);
+  useEffect(() => { serve.set(withTiming(serveOn ? 1 : 0, { duration: MOTION.base })); }, [serve, serveOn]);
+  const serveFill = useAnimatedStyle(() => ({ opacity: serve.get() }));
+  const serveText = useAnimatedStyle(() => ({ color: interpolateColor(serve.get(), [0, 1], [fg, bg.get()]) }));
+
   // Cambio de lado: las dos mitades se encogen como tarjetas y se cruzan en sentidos opuestos,
   // una por encima de la otra, hasta ocupar el sitio contrario.
   const { swap, swapDir, swapDistance, horizontal } = p;
@@ -110,48 +123,63 @@ export function TeamPanel(p: Props) {
     };
   });
 
-  const digits = Math.max(2, String(p.points).length);
-  const small = Math.max(14, Math.min(28, Math.floor(Math.min(p.width, p.height) * 0.06)));
-  // Espacio reservado arriba (nombre + sets) y abajo (progreso / controles)
-  // El número se centra en el espacio libre: entre la cabecera (nombre y sets) y lo que haya
-  // debajo. Con los controles debajo se reserva su sitio; si no, solo el de los puntos de
-  // progreso (fijo, para que el número no cambie de tamaño al cambiar de modo).
-  const top = p.showName || p.showSets ? 16 + small * 2.4 : 16;
-  const dotsBottom = p.controlsBelow ? 60 : 18;
-  const bottom = p.controlsBelow ? 56 : dotsBottom + small * 0.7 + 10;
-  const fontSize = Math.floor(Math.min((p.height - top - bottom) * 1.05, (p.width * 0.9) / (digits * 0.62)));
-  const fg = p.team.fg;
+  const L = p.layout;
+  const small = L.small;
+  const dotSize = small * 0.7;
+  // El número se coloca en el centro del espacio libre que calcula layout.ts
+  const numberTop = L.area.top + (L.area.height - p.lineHeight) / 2;
 
   return (
     <Animated.View
       {...pointGestures}
-      style={[styles.panel, { width: p.width, height: p.height }, styles.noSelect, bgStyle, swapStyle]}
+      style={[styles.panel, { width: L.width, height: L.height }, styles.noSelect, bgStyle, swapStyle]}
     >
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: fg }, flashStyle]} />
-      <View style={styles.header} pointerEvents="box-none">
+      <View
+        style={[styles.header, { top: L.header.top, left: L.header.left, right: L.header.right, height: L.header.height, gap: small * 0.5 }]}
+        pointerEvents="box-none"
+      >
         {p.showName && (
-          <Text numberOfLines={1} style={[styles.name, { color: fg, fontSize: small }]}>
-            {p.winner ? '🏆 ' : ''}
-            {p.team.name}
-          </Text>
+          <Pressable
+            onPress={p.showServe ? p.onServe : undefined}
+            disabled={!p.showServe}
+            style={styles.nameWrap}
+            hitSlop={12}
+            accessibilityRole={p.showServe ? 'button' : 'text'}
+            accessibilityLabel={p.showServe ? `${p.team.name}: elegir saque` : p.team.name}
+            accessibilityState={{ selected: serveOn }}
+          >
+            {serveOn && !p.showSets && (
+              <View style={{ width: small * 0.55, height: small * 0.55, borderRadius: small, backgroundColor: fg }} />
+            )}
+            <Text numberOfLines={1} style={[styles.name, { color: fg, fontSize: small }]}>
+              {p.winner ? '🏆 ' : ''}
+              {p.team.name}
+            </Text>
+          </Pressable>
         )}
         {p.showSets && (
           <Animated.View
             {...setGestures}
             hitSlop={16}
+            accessibilityLabel={`Sets: ${p.sets}${serveOn ? ', saca' : ''}`}
             style={[styles.sets, { borderColor: fg, minWidth: small * 2.4, height: small * 2.4, borderRadius: small * 1.2 }, setsStyle]}
           >
-            <Text style={[styles.setsText, { color: fg, fontSize: small * 1.3 }]}>{p.sets}</Text>
+            <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: fg, borderRadius: small * 1.2 }, serveFill]} />
+            <Animated.Text style={[styles.setsText, { fontSize: small * 1.3 }, serveText]}>{p.sets}</Animated.Text>
           </Animated.View>
         )}
       </View>
 
-      <View style={{ paddingTop: top, paddingBottom: bottom, flex: 1, justifyContent: 'center', alignSelf: 'stretch' }} pointerEvents="none">
-      <AnimatedNumber
-        value={p.points}
-        lineHeight={fontSize * 1.05}
-        style={{ ...styles.points, color: fg, fontSize, lineHeight: fontSize * 1.05 }}
-      />
+      <View
+        pointerEvents="none"
+        style={[styles.number, { top: numberTop, left: L.area.left, width: L.area.width, height: p.lineHeight }]}
+      >
+        <AnimatedNumber
+          value={p.points}
+          lineHeight={p.lineHeight}
+          style={{ ...styles.points, color: fg, fontSize: p.fontSize, lineHeight: p.lineHeight }}
+        />
       </View>
 
       {bursts.map(({ id, label }) => (
@@ -159,20 +187,23 @@ export function TeamPanel(p: Props) {
           key={id}
           entering={floatUp}
           pointerEvents="none"
-          style={[styles.burst, { color: fg, fontSize: small * 2.6, top: p.height * 0.18 }, { opacity: 0 }]}
+          style={[styles.burst, { color: fg, fontSize: small * 2.6, top: L.area.top }, { opacity: 0 }]}
         >
           {label}
         </Animated.Text>
       ))}
 
-      {p.required > 1 && (
-        <View style={[styles.dots, { bottom: dotsBottom }]} pointerEvents="none">
-          {Array.from({ length: p.required }, (_, i) => (
+      {p.dots && (
+        <View
+          style={[styles.dots, { bottom: L.dotsBottom, left: L.area.left, width: L.area.width, gap: small * 0.45 }]}
+          pointerEvents="none"
+        >
+          {Array.from({ length: p.dots.count }, (_, i) => (
             <View
               key={i}
-              style={[styles.dot, { borderColor: fg, width: small * 0.7, height: small * 0.7, borderRadius: small }]}
+              style={[styles.dot, { borderColor: fg, width: dotSize, height: dotSize, borderRadius: small }]}
             >
-              {i < p.progress && (
+              {i < p.dots!.filled && (
                 <Animated.View
                   entering={ZoomIn.springify().damping(12).stiffness(280)}
                   exiting={ZoomOut.duration(MOTION.fast)}
@@ -194,18 +225,17 @@ const styles = StyleSheet.create({
   },
   burst: { position: 'absolute', fontFamily: F.display, textAlign: 'center' },
   noSelect: { userSelect: 'none', touchAction: 'none', cursor: 'pointer' } as object,
-  header: {
-    position: 'absolute', top: 16, left: 16, right: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12,
-  },
+  header: { position: 'absolute', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  nameWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  number: { position: 'absolute' },
   name: { flexShrink: 1, fontFamily: F.semibold, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.85 },
-  sets: { borderWidth: 2, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, opacity: 0.9 },
+  sets: { borderWidth: 2, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, overflow: 'hidden' },
   setsText: { fontFamily: F.display, fontVariant: ['tabular-nums'] },
   points: {
     fontFamily: F.display, fontVariant: ['tabular-nums'], includeFontPadding: false,
     textAlign: 'center', letterSpacing: -2,
   },
-  dots: { position: 'absolute', flexDirection: 'row', gap: 10 },
+  dots: { position: 'absolute', flexDirection: 'row', justifyContent: 'center' },
   dot: { borderWidth: 2, opacity: 0.9, overflow: 'hidden' },
   dotFill: { flex: 1 },
 });

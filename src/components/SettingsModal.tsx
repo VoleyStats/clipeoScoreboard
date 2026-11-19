@@ -31,7 +31,7 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
   const addRule = () =>
     set('rules', [
       ...config.rules,
-      { id: newRuleId(), name: 'Nuevo modo', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true },
+      { id: newRuleId(), name: 'Nuevo modo', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true, serveAfter: 1, serveConsecutive: true },
     ]);
   const removeRule = (id: string) => set('rules', config.rules.filter((r) => r.id !== id));
 
@@ -135,6 +135,12 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
 
       <Section title="Pantalla">
         <Toggle label="Mostrar nombres" value={config.showNames} onChange={(v) => set('showNames', v)} />
+        <Toggle
+          label="Marcar quién saca"
+          hint="El círculo de sets del equipo que saca se pinta en negativo. Toca un nombre para elegir quién saca."
+          value={config.showServe}
+          onChange={(v) => set('showServe', v)}
+        />
         {Platform.OS !== 'web' && (
           <Toggle label="Vibración" value={config.haptics} onChange={(v) => set('haptics', v)} />
         )}

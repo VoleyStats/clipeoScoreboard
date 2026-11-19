@@ -24,6 +24,13 @@ export interface ScoringRule {
   consecutive: boolean;
   /** Solo se aplica una vez: tras sumar, se vuelve a la regla por defecto */
   once: boolean;
+  /**
+   * Jugadas que tiene que ganar el equipo que recibe para pasar a sacar (1 = lo normal:
+   * quien gana la jugada saca). Los puntos se siguen sumando en cada jugada.
+   */
+  serveAfter?: number;
+  /** Las jugadas para recuperar el saque tienen que ser seguidas */
+  serveConsecutive?: boolean;
 }
 
 /** Gestos sobre el marcador de un equipo (el círculo de sets tiene los suyos fijos). */
@@ -46,6 +53,8 @@ export interface Config {
   /** Qué hace cada gesto sobre el marcador de un equipo */
   gestures: Record<Gesture, GestureAction>;
   showNames: boolean;
+  /** Marca qué equipo saca (círculo de sets en negativo) */
+  showServe: boolean;
   showSets: boolean;
   haptics: boolean;
   /** Al sumar un set (manual) los puntos vuelven a 0 */
@@ -69,4 +78,8 @@ export interface MatchState {
   activeRuleId: string;
   /** Equipos intercambiados de lado */
   swapped: boolean;
+  /** Equipo que saca (null hasta la primera jugada o hasta que se elija) */
+  serving: TeamId | null;
+  /** Jugadas ganadas por el equipo que recibe para recuperar el saque */
+  serveProgress: number;
 }

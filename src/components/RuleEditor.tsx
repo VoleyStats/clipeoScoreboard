@@ -4,7 +4,8 @@ import { Field, Row, Stepper, Toggle } from './ui';
 export function describeRule(r: ScoringRule): string {
   const plays = r.ralliesRequired === 1 ? '1 jugada' : `${r.ralliesRequired} jugadas${r.consecutive ? ' seguidas' : ''}`;
   const pts = `+${r.pointsAwarded} ${r.pointsAwarded === 1 ? 'punto' : 'puntos'}`;
-  return `${plays} → ${pts}${r.once ? ' · una vez' : ''}`;
+  const serve = (r.serveAfter ?? 1) > 1 ? ` · saque tras ${r.serveAfter}${r.serveConsecutive ? ' seguidas' : ''}` : '';
+  return `${plays} → ${pts}${serve}${r.once ? ' · una vez' : ''}`;
 }
 
 interface Props {
@@ -33,6 +34,17 @@ export function RuleEditor({ rule, onChange, isDefault }: Props) {
           hint="Si el rival gana una jugada, se pierde el progreso"
           value={rule.consecutive}
           onChange={(consecutive) => onChange({ consecutive })}
+        />
+      )}
+      <Row label="Jugadas para recuperar el saque" hint="Las que tiene que ganar quien recibe para pasar a sacar">
+        <Stepper value={rule.serveAfter ?? 1} onChange={(v) => onChange({ serveAfter: v })} max={9} />
+      </Row>
+      {(rule.serveAfter ?? 1) > 1 && (
+        <Toggle
+          label="Seguidas para el saque"
+          hint="Si el equipo que saca gana una jugada, el rival pierde lo acumulado"
+          value={!!rule.serveConsecutive}
+          onChange={(serveConsecutive) => onChange({ serveConsecutive })}
         />
       )}
       {!isDefault && (

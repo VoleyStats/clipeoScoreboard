@@ -6,6 +6,10 @@ export const DEFAULT_RULES: ScoringRule[] = [
   { id: 'normal', name: 'Normal', ralliesRequired: 1, pointsAwarded: 1, consecutive: false, once: false },
   { id: 'double', name: 'Punto doble', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true },
   { id: 'three-for-one', name: '3 seguidas = 1', ralliesRequired: 3, pointsAwarded: 1, consecutive: true, once: false },
+  {
+    id: 'serve-two', name: 'Saque tras 2', ralliesRequired: 1, pointsAwarded: 1, consecutive: false, once: false,
+    serveAfter: 2, serveConsecutive: true,
+  },
 ];
 
 export const DEFAULT_CONFIG: Config = {
@@ -16,6 +20,7 @@ export const DEFAULT_CONFIG: Config = {
   rules: DEFAULT_RULES,
   gestures: { tap: 'point', longPress: 'rule:double', swipeDown: 'minus', swipeUp: 'none' },
   showNames: true,
+  showServe: true,
   showSets: true,
   haptics: true,
   resetPointsOnSet: true,
@@ -33,6 +38,8 @@ export const initialState = (config: Config): MatchState => ({
   progress: { a: 0, b: 0 },
   activeRuleId: config.rules[0].id,
   swapped: false,
+  serving: null,
+  serveProgress: 0,
 });
 
 export function activeRule(state: MatchState, config: Config): ScoringRule {
@@ -69,26 +76,42 @@ function checkSetWon(state: MatchState, config: Config): MatchState {
         sets: { ...state.sets, [t]: state.sets[t] + 1 },
         points: { a: 0, b: 0 },
         progress: { a: 0, b: 0 },
+        serveProgress: 0,
       };
     }
   }
   return state;
 }
 
+/**
+ * Saque tras una jugada ganada por `team`, según el modo activo:
+ * quien saca y gana sigue sacando; quien recibe necesita `serveAfter` jugadas para pasar a sacar.
+ */
+export function serveAfterRally(state: MatchState, rule: ScoringRule, team: TeamId): Pick<MatchState, 'serving' | 'serveProgress'> {
+  if (state.serving === null) return { serving: team, serveProgress: 0 };
+  if (state.serving === team) {
+    return { serving: team, serveProgress: rule.serveConsecutive ? 0 : state.serveProgress };
+  }
+  const n = state.serveProgress + 1;
+  return n >= Math.max(1, rule.serveAfter ?? 1) ? { serving: team, serveProgress: 0 } : { serving: state.serving, serveProgress: n };
+}
+
 /** Un equipo gana una jugada (tap). Se aplica la regla activa. */
 export function winRally(state: MatchState, config: Config, team: TeamId): MatchState {
   const rule = activeRule(state, config);
+  const serve = serveAfterRally(state, rule, team);
   const progress = { ...state.progress };
   if (rule.consecutive) progress[other(team)] = 0;
   progress[team] += 1;
 
   if (progress[team] < Math.max(1, rule.ralliesRequired)) {
-    return { ...state, progress };
+    return { ...state, ...serve, progress };
   }
 
   progress[team] = 0;
   let next: MatchState = {
     ...state,
+    ...serve,
     progress,
     points: { ...state.points, [team]: state.points[team] + rule.pointsAwarded },
   };
@@ -125,10 +148,11 @@ export function resolveAction(config: Config, action: GestureAction): ResolvedAc
  * pero no suma progreso al modo activo porque se ha puntuado con otra regla.
  */
 export function winSpecialRally(state: MatchState, config: Config, team: TeamId, rule: ScoringRule): MatchState {
+  const active = activeRule(state, config);
   const progress = { ...state.progress };
-  if (activeRule(state, config).consecutive) progress[other(team)] = 0;
+  if (active.consecutive) progress[other(team)] = 0;
   return checkSetWon(
-    { ...state, progress, points: { ...state.points, [team]: state.points[team] + rule.pointsAwarded } },
+    { ...state, ...serveAfterRally(state, active, team), progress, points: { ...state.points, [team]: state.points[team] + rule.pointsAwarded } },
     config,
   );
 }
@@ -174,11 +198,17 @@ export function removeSet(state: MatchState, team: TeamId): MatchState {
 
 export function selectRule(state: MatchState, ruleId: string): MatchState {
   if (ruleId === state.activeRuleId) return state;
-  return { ...state, activeRuleId: ruleId, progress: { a: 0, b: 0 } };
+  return { ...state, activeRuleId: ruleId, progress: { a: 0, b: 0 }, serveProgress: 0 };
 }
 
 export function resetPoints(state: MatchState): MatchState {
-  return { ...state, points: { a: 0, b: 0 }, progress: { a: 0, b: 0 } };
+  return { ...state, points: { a: 0, b: 0 }, progress: { a: 0, b: 0 }, serveProgress: 0 };
+}
+
+/** Elegir a mano qué equipo saca (tocando su nombre). */
+export function setServing(state: MatchState, team: TeamId): MatchState {
+  if (state.serving === team && state.serveProgress === 0) return state;
+  return { ...state, serving: team, serveProgress: 0 };
 }
 
 /** Cierra el set: suma 1 set al equipo con más puntos (si no hay empate) y reinicia los puntos. */

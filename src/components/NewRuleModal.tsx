@@ -9,6 +9,7 @@ import { F } from '../theme';
 
 const blank = (): ScoringRule => ({
   id: newRuleId(), name: 'Nuevo modo', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true,
+  serveAfter: 1, serveConsecutive: true,
 });
 
 interface Props {

@@ -19,6 +19,12 @@ Cada gesto sobre el marcador de un equipo tiene una acción configurable (Ajuste
 - **Deshacer**: revierte el último cambio, sea cual sea (punto, set, cambio de lado…). También está en el menú •••.
 - El círculo de sets siempre suma al tocar y resta al deslizar hacia abajo.
 
+### Saque
+
+El círculo de sets del equipo que saca se pinta en negativo (fondo del color del texto y número del color de fondo; si los sets están ocultos, un punto junto al nombre). Quien gana la jugada pasa a sacar; **tocar el nombre** de un equipo lo elige a mano. Se puede desactivar en Ajustes → Pantalla.
+
+Cada modo puede pedir varias jugadas para **recuperar el saque** (por ejemplo «Saque tras 2»): los puntos se suman en cada jugada, pero el equipo que recibe tiene que ganar N jugadas (seguidas o acumuladas) para pasar a sacar. Su progreso se ve en los puntos bajo su número.
+
 Por qué gestos → acciones y no gestos dentro de cada modo: un modo define cuánto vale una jugada y un gesto cómo se marca; así restar y deshacer también son configurables, dos modos no compiten por el mismo gesto y todo se ajusta en un solo sitio. El doble toque se descartó porque obligaría a retrasar cada toque normal para distinguirlo.
 
 Abajo en el centro:
@@ -44,6 +50,7 @@ Ejemplos incluidos (todos editables):
 | Normal (por defecto) | 1 | 1 | – | – |
 | Punto doble | 1 | 2 | – | sí |
 | 3 seguidas = 1 | 3 | 1 | sí | no |
+| Saque tras 2 | 1 | 1 | — | no (y el saque cambia tras 2 jugadas seguidas) |
 
 Cuando N > 1, bajo el número aparecen puntos que muestran el progreso de cada equipo.
 
@@ -123,7 +130,8 @@ Guía paso a paso, textos de las fichas (ES/EN), capturas, gráficos y respuesta
 
 ```
 App.tsx                      pantalla principal
-src/logic.ts                 reglas del marcador (funciones puras, testeadas)
+src/logic.ts                 reglas del marcador y del saque (funciones puras, testeadas)
+src/layout.ts                colocación según el espacio disponible y las zonas seguras (testeada)
 src/types.ts                 tipos
 src/storage.ts               persistencia (AsyncStorage)
 src/useTapSwipe.ts           gesto tap / deslizar hacia abajo

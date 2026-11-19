@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet, winSpecialRally, matchWinner, applyGesture, resolveAction, migrateConfig,
+  DEFAULT_CONFIG, addSet, initialState, removePoint, removeSet, selectRule, winRally, reconcile, closeSet, setServing, winSpecialRally, matchWinner, applyGesture, resolveAction, migrateConfig,
 } from '../src/logic';
 import type { Config } from '../src/types';
 
@@ -187,4 +187,49 @@ test('final de partido: ganador y no se suman más sets automáticos', () => {
   assert.equal(matchWinner(s, c), 'a');
   s = winRally({ ...s, points: { a: 24, b: 0 } }, c, 'a');
   assert.deepEqual(s.sets, { a: 2, b: 0 });
+});
+
+test('saque: quien gana la jugada saca (modo normal)', () => {
+  let s = winRally(initialState(cfg), cfg, 'a');
+  assert.equal(s.serving, 'a');
+  s = winRally(s, cfg, 'b');
+  assert.equal(s.serving, 'b');
+});
+
+test('saque tras 2: los puntos suben en cada jugada pero el saque cambia a las 2 seguidas', () => {
+  let s = selectRule(setServing(initialState(cfg), 'a'), 'serve-two');
+  s = winRally(s, cfg, 'b');
+  assert.deepEqual(s.points, { a: 0, b: 1 });
+  assert.equal(s.serving, 'a');
+  assert.equal(s.serveProgress, 1);
+  s = winRally(s, cfg, 'a'); // el que saca gana: con "seguidas", el rival pierde lo acumulado
+  assert.equal(s.serveProgress, 0);
+  s = winRally(winRally(s, cfg, 'b'), cfg, 'b');
+  assert.deepEqual(s.points, { a: 1, b: 3 });
+  assert.equal(s.serving, 'b');
+  assert.equal(s.serveProgress, 0);
+});
+
+test('saque tras N acumuladas (no seguidas) conserva el progreso', () => {
+  const r = { id: 'acc', name: 'Saque tras 3', ralliesRequired: 1, pointsAwarded: 1, consecutive: false, once: false, serveAfter: 3, serveConsecutive: false };
+  const c = { ...cfg, rules: [...cfg.rules, r] };
+  let s = selectRule(setServing(initialState(c), 'a'), 'acc');
+  s = winRally(winRally(winRally(s, c, 'b'), c, 'a'), c, 'b');
+  assert.equal(s.serving, 'a');
+  assert.equal(s.serveProgress, 2);
+  s = winRally(s, c, 'b');
+  assert.equal(s.serving, 'b');
+});
+
+test('elegir saque a mano y reiniciar puntos reinician el progreso del saque', () => {
+  let s = selectRule(setServing(initialState(cfg), 'a'), 'serve-two');
+  s = winRally(s, cfg, 'b');
+  assert.equal(setServing(s, 'b').serveProgress, 0);
+  assert.equal(closeSet(s).serveProgress, 0);
+  assert.equal(closeSet(s).serving, 'a');
+});
+
+test('la jugada especial también cuenta para el saque', () => {
+  const s = winSpecialRally(setServing(initialState(cfg), 'b'), cfg, 'a', double);
+  assert.equal(s.serving, 'a');
 });

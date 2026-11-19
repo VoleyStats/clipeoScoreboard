@@ -5,7 +5,8 @@ import Animated, { Easing, FadeInDown, LinearTransition, useSharedValue, withTim
 import { StatusBar } from 'expo-status-bar';
 import { useKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { digitsOf, scoreboardLayout } from './src/layout';
 
 import { MainMenu } from './src/components/MainMenu';
 import { NewRuleModal } from './src/components/NewRuleModal';
@@ -14,7 +15,7 @@ import { SettingsModal } from './src/components/SettingsModal';
 import { TeamPanel } from './src/components/TeamPanel';
 import { isValidColor } from './src/components/ui';
 import {
-  DEFAULT_CONFIG, GESTURES, activeRule, addSet, applyGesture, closeSet, initialState, matchWinner, reconcile, removeSet, resolveAction,
+  DEFAULT_CONFIG, GESTURES, activeRule, addSet, applyGesture, closeSet, initialState, matchWinner, reconcile, removeSet, resolveAction, setServing,
   resetMatch, selectRule,
 } from './src/logic';
 import { load, saveConfig, saveState } from './src/storage';
@@ -67,6 +68,15 @@ const safeTeam = (t: Team, fallback: Team): Team => ({
 });
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <Scoreboard />
+    </SafeAreaProvider>
+  );
+}
+
+function Scoreboard() {
+  const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   // Estado del partido con historial para "Deshacer" (en memoria, últimos 50 cambios)
@@ -134,10 +144,21 @@ export default function App() {
   // Si las fuentes fallan se usa la del sistema
   if (!loaded) return <LoadingScreen />;
 
-  const landscape = width >= height;
-  const panelW = landscape ? width / 2 : width;
-  const panelH = landscape ? height : height / 2;
+  // Colocación según el espacio disponible (mismo tamaño de número en las dos mitades)
+  const L = scoreboardLayout({
+    width, height, insets,
+    showHeader: config.showNames || config.showSets,
+    digits: Math.max(2, digitsOf(state.points.a), digitsOf(state.points.b)),
+  });
+  const landscape = L.landscape;
+  const slotOf = (id: TeamId) => ((id === 'a') !== state.swapped ? 0 : 1);
   const rule = activeRule(state, config);
+  const serveAfter = rule.serveAfter ?? 1;
+  // Puntos bajo el número: progreso del modo, o jugadas del equipo que recibe para recuperar el saque
+  const dotsFor = (id: TeamId) =>
+    rule.ralliesRequired > 1 ? { count: rule.ralliesRequired, filled: state.progress[id] }
+      : serveAfter > 1 && state.serving && state.serving !== id ? { count: serveAfter, filled: state.serveProgress }
+        : null;
   const winner = matchWinner(state, config);
   const toggleSwap = () => setState((s) => ({ ...s, swapped: !s.swapped }));
   const actions = Object.fromEntries(GESTURES.map((g) => [g, resolveAction(config, config.gestures[g])])) as Record<
@@ -151,7 +172,7 @@ export default function App() {
   };
 
   return (
-    <SafeAreaProvider>
+    <>
       <KeepAwake />
       <StatusBar hidden />
       <View style={[styles.root, { flexDirection: landscape ? 'row' : 'column' }]}>
@@ -161,18 +182,20 @@ export default function App() {
             key={id}
             swap={swapPos}
             swapDir={id === 'a' ? 1 : -1}
-            swapDistance={landscape ? panelW : panelH}
+            swapDistance={landscape ? L.panels[0].width : L.panels[0].height}
             horizontal={landscape}
-            controlsBelow={landscape || (id === 'b') !== state.swapped}
+            layout={L.panels[slotOf(id)]}
+            fontSize={L.fontSize}
+            lineHeight={L.lineHeight}
+            serving={state.serving === id}
+            showServe={config.showServe}
+            onServe={() => { buzz(); setState((s) => setServing(s, id)); }}
+            dots={dotsFor(id)}
             actions={actions}
             onGesture={(g) => onGesture(id, g)}
             team={safeTeam(config.teams[id], DEFAULT_CONFIG.teams[id])}
             points={state.points[id]}
             sets={state.sets[id]}
-            progress={state.progress[id]}
-            required={rule.ralliesRequired}
-            width={panelW}
-            height={panelH}
             showName={config.showNames}
             showSets={config.showSets}
             winner={winner === id}
@@ -181,26 +204,39 @@ export default function App() {
           />
         ))}
 
-        <Animated.View entering={FadeInDown.delay(250).duration(300)} style={styles.center} pointerEvents="box-none">
+        <Animated.View
+          entering={FadeInDown.delay(250).duration(300)}
+          style={[styles.center, { bottom: L.controls.bottom, gap: L.controls.gap }]}
+          pointerEvents="box-none"
+        >
           <Animated.View layout={LinearTransition.duration(200)}>
             <Pressable
               onPress={() => setPickerOpen(true)}
-              style={[styles.pill, rule.id !== config.rules[0].id && styles.pillActive]}
+              style={[
+                styles.pill,
+                { height: L.controls.height, paddingHorizontal: L.controls.pillPadding, maxWidth: 200 * L.scale },
+                rule.id !== config.rules[0].id && styles.pillActive,
+              ]}
               hitSlop={8}
               accessibilityLabel="Modo de puntuación"
             >
               <Animated.Text
                 key={rule.id}
                 entering={ZoomIn.duration(200)}
-                style={[styles.pillText, rule.id !== config.rules[0].id && { color: C.onVolt }]}
+                style={[styles.pillText, { fontSize: L.controls.fontSize }, rule.id !== config.rules[0].id && { color: C.onVolt }]}
                 numberOfLines={1}
               >
                 {rule.name}
               </Animated.Text>
             </Pressable>
           </Animated.View>
-          <Pressable onPress={() => setMenuOpen(true)} style={styles.gear} hitSlop={12} accessibilityLabel="Menú">
-            <Ionicons name="ellipsis-horizontal" size={18} color="rgba(255,255,255,0.9)" />
+          <Pressable
+            onPress={() => setMenuOpen(true)}
+            style={[styles.gear, { width: L.controls.gearWidth, height: L.controls.height }]}
+            hitSlop={12}
+            accessibilityLabel="Menú"
+          >
+            <Ionicons name="ellipsis-horizontal" size={L.controls.iconSize} color="rgba(255,255,255,0.9)" />
           </Pressable>
         </Animated.View>
       </View>
@@ -239,7 +275,7 @@ export default function App() {
         onChange={updateConfig}
         onClose={() => setSettingsOpen(false)}
       />
-    </SafeAreaProvider>
+    </>
   );
 }
 
@@ -248,17 +284,17 @@ const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingLogo: { width: 180, height: 180 },
   center: {
-    position: 'absolute', bottom: 14, left: 0, right: 0, zIndex: 10,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    position: 'absolute', left: 0, right: 0, zIndex: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
   },
   pill: {
     backgroundColor: 'rgba(7,10,18,0.55)', borderRadius: 999,
-    paddingHorizontal: 14, height: 32, justifyContent: 'center', maxWidth: 200,
+    justifyContent: 'center',
   },
   pillActive: { backgroundColor: C.volt },
-  pillText: { color: '#fff', fontSize: 13, fontFamily: F.bold, letterSpacing: 0.5 },
+  pillText: { color: '#fff', fontFamily: F.bold, letterSpacing: 0.5 },
   gear: {
     backgroundColor: 'rgba(7,10,18,0.55)', borderRadius: 999,
-    width: 48, height: 32, alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
 });
