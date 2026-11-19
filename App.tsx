@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Image, Platform, Pressable, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, View, useColorScheme, useWindowDimensions } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import Animated, { Easing, FadeInDown, LinearTransition, useSharedValue, withTiming, ZoomIn } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
@@ -14,8 +14,9 @@ import { RulePicker } from './src/components/RulePicker';
 import { SettingsModal } from './src/components/SettingsModal';
 import { TeamPanel } from './src/components/TeamPanel';
 import { isValidColor } from './src/components/ui';
+import { DEFAULTS as DEFAULT_CONFIG, t } from './src/i18n';
 import {
-  DEFAULT_CONFIG, GESTURES, activeRule, addSet, applyGesture, closeSet, initialState, matchWinner, reconcile, removeSet, resolveAction, setServing,
+  GESTURES, activeRule, addSet, applyGesture, closeSet, initialState, matchWinner, reconcile, removeSet, resolveAction, setServing,
   resetMatch, selectRule,
 } from './src/logic';
 import { load, saveConfig, saveState } from './src/storage';
@@ -218,7 +219,7 @@ function Scoreboard() {
                 rule.id !== config.rules[0].id && styles.pillActive,
               ]}
               hitSlop={8}
-              accessibilityLabel="Modo de puntuación"
+              accessibilityLabel={t.scoringMode}
             >
               <Animated.Text
                 key={rule.id}
@@ -234,7 +235,7 @@ function Scoreboard() {
             onPress={() => setMenuOpen(true)}
             style={[styles.gear, { width: L.controls.gearWidth, height: L.controls.height }]}
             hitSlop={12}
-            accessibilityLabel="Menú"
+            accessibilityLabel={t.menu}
           >
             <Ionicons name="ellipsis-horizontal" size={L.controls.iconSize} color="rgba(255,255,255,0.9)" />
           </Pressable>

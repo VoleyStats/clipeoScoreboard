@@ -1,18 +1,23 @@
 # Publicar Clipeo Scoreboard en las tiendas
 
-Todo lo necesario para App Store y Google Play: textos, capturas, gráficos y respuestas a los cuestionarios.
+Todo lo necesario para App Store y Google Play: textos, capturas, gráficos y respuestas a los cuestionarios, en **español (`es`) e inglés (`en`)**. La app también está en los dos idiomas (sigue el idioma del dispositivo), así que las capturas en inglés muestran la interfaz en inglés.
+
+`<idioma>` es `es` o `en`: sube cada carpeta en la localización correspondiente de la ficha.
 
 | Qué | Dónde |
 |---|---|
 | Textos de la ficha (ES / EN) | [`listing-es.md`](listing-es.md), [`listing-en.md`](listing-en.md) |
-| Capturas iPhone 6,9" (2868×1320) | `screenshots/ios-6.9/01.png` … `06.png` |
-| Capturas iPad 13" (2752×2064) | `screenshots/ipad-13/01.png` … `06.png` |
-| Capturas móvil Android (1920×1080) | `screenshots/android-phone/01.png` … `06.png` |
-| Vista previa de cada secuencia | `screenshots/<dispositivo>/panorama.png` (no se sube) |
-| Capturas sueltas de la app (material) | `screenshots/raw/<dispositivo>/` |
-| Imagen destacada Google Play (1024×500) | `graphics/play-feature-graphic-1024x500.png` |
-| Icono Google Play (512×512) | `graphics/play-icon-512.png` |
-| Política de privacidad | https://clipeo-scoreboard.vercel.app/privacy.html (fuente: `public/privacy.html`) |
+| Capturas iPhone 6,3" (2622×1206) | `screenshots/<idioma>/ios-6.3/01.png` … `06.png` |
+| Capturas iPhone 6,9" (2868×1320) | `screenshots/<idioma>/ios-6.9/01.png` … `06.png` |
+| Capturas iPad 13" (2752×2064) | `screenshots/<idioma>/ipad-13/01.png` … `06.png` |
+| Capturas móvil Android (1920×1080) | `screenshots/<idioma>/android-phone/01.png` … `06.png` |
+| Vista previa de cada secuencia | `screenshots/<idioma>/<dispositivo>/panorama.png` (no se sube) |
+| Capturas sueltas de la app (material) | `screenshots/raw/<idioma>/<dispositivo>/` |
+| App Store: header de la ficha (3840×1646) | `graphics/<idioma>/app-store-header-3840x1646.png` |
+| App Store: search result (3840×2560) | `graphics/<idioma>/app-store-search-3840x2560.png` |
+| Imagen destacada Google Play (1024×500) | `graphics/<idioma>/play-feature-graphic-1024x500.png` |
+| Icono Google Play (512×512) | `graphics/play-icon-512.png` (sin texto, común a los dos idiomas) |
+| Política de privacidad | https://scoreboard.clipeostats.com/privacy (`?lang=es` / `?lang=en`; fuente: `public/privacy.html`) |
 
 Las capturas son una **secuencia continua**: seis pantallas que juntas forman una sola imagen (una línea azul las une y baja en zigzag por cada unión). **Súbelas en orden, de `01` a `06`**, para que la secuencia se lea seguida en la tienda:
 
@@ -23,7 +28,21 @@ Las capturas son una **secuencia continua**: seis pantallas que juntas forman un
 5. Tus equipos, tus colores
 6. Cierre: logo · Gratis · Sin cuentas · Sin anuncios
 
-Se regeneran con `npm run build:web && npm run store:assets` (equipos de ejemplo ficticios). Los textos están en `STORY`, dentro de `scripts/store-assets.cjs`.
+Se regeneran con `npm run build:web && npm run store:assets` (equipos de ejemplo ficticios; requiere Playwright: `npm i --no-save playwright && npx playwright install chromium`). Los textos de cada idioma están en `LANGS`, dentro de `scripts/store-assets.cjs`.
+
+### Header y search result (App Store, iOS / iPadOS 27)
+
+Recursos creativos opcionales que el App Store muestra arriba de la ficha (header) y en los resultados de búsqueda. Medidas de Apple ([Creative assets specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/creative-assets-specifications/)):
+
+| Recurso | Tamaño | Zona segura | Contenido |
+|---|---|---|---|
+| Header | 3840×1646 (21:9), exacto | 1646×661 en (1097, 493) | El marcador partido en dos, como el icono, con un toque «+1» |
+| Search result | 3840×2560 (3:2) | 2168×1030 en (836, 765) | «Marcador de voleibol / Toca para sumar…» y la app en uso |
+
+- Lo importante va dentro de la zona segura; el resto es fondo, porque Apple recorta según el dispositivo y la orientación.
+- PNG sin transparencia. Sin precios, URLs, ©, premios ni logos de otras plataformas ([buenas prácticas](https://developer.apple.com/app-store/asset-best-practices/)).
+- Dónde: App Store Connect → la versión → *Product Page Information* → pestaña *Header and Search Results*. Sube la versión de cada idioma en su localización y revísalo con la vista previa de App Store Connect.
+- Para comprobar la zona segura: `SAFE_AREA=1 npm run store:assets` la dibuja en rojo (**no subas esas imágenes**; vuelve a generarlas sin la variable).
 
 ---
 
@@ -32,7 +51,7 @@ Se regeneran con `npm run build:web && npm run store:assets` (equipos de ejemplo
 - [ ] Cuenta de **Expo** (gratis): https://expo.dev/signup
 - [ ] **Apple Developer Program** (99 $/año): https://developer.apple.com/programs/
 - [ ] **Google Play Console** (25 $ una vez): https://play.google.com/console/signup
-- [ ] Confirmar el identificador **`com.voleystats.clipeoscoreboard`** (iOS y Android). No se puede cambiar después de publicar.
+- [x] Identificadores: iOS **`com.clipeostats.scoreboard`** (app de App Store Connect con Apple ID `6835842278`, fijado como `ascAppId` en `eas.json`), Android **`com.clipeostats.scoreboard`**. No se pueden cambiar después de publicar.
 - [ ] La URL de la política de privacidad tiene que abrirse **sin iniciar sesión** (ver «Pendiente» al final).
 
 ## 2. Vincular el proyecto con Expo (una vez)
@@ -88,12 +107,14 @@ Después, en App Store Connect: completa la ficha (abajo), añade la build y env
 
 | Campo | Valor |
 |---|---|
-| Nombre / subtítulo / palabras clave / descripción | [`listing-es.md`](listing-es.md) (y [`listing-en.md`](listing-en.md) si añades inglés) |
+| Nombre / subtítulo / palabras clave / descripción | [`listing-es.md`](listing-es.md) (español) y [`listing-en.md`](listing-en.md) (inglés: añade la localización *English (U.S.)*) |
+| Capturas | iPhone: `screenshots/<idioma>/ios-6.3/` (2622×1206) o `ios-6.9/` (2868×1320), según el tamaño que pida App Store Connect; iPad: `screenshots/<idioma>/ipad-13/`. En orden |
+| Header y search result | `graphics/<idioma>/app-store-header-3840x1646.png` y `app-store-search-3840x2560.png` |
 | Categoría principal | Deportes |
 | Categoría secundaria | Utilidades |
 | URL de soporte | https://clipeostats.com/contact |
 | URL de marketing | https://clipeostats.com |
-| URL de política de privacidad | https://clipeo-scoreboard.vercel.app/privacy.html |
+| URL de política de privacidad | Español: https://scoreboard.clipeostats.com/privacy?lang=es · Inglés: https://scoreboard.clipeostats.com/privacy?lang=en |
 | Copyright | 2026 Clipeo |
 | Precio | Gratis |
 | Cifrado | Ya declarado en `app.json` (`usesNonExemptEncryption: false`): no hay que responder nada |
@@ -122,13 +143,14 @@ All data is stored locally on the device.
 |---|---|
 | Título / descripción breve / completa | [`listing-es.md`](listing-es.md) |
 | Icono | `graphics/play-icon-512.png` |
-| Imagen destacada | `graphics/play-feature-graphic-1024x500.png` |
-| Capturas de teléfono | `screenshots/android-phone/01.png` … `06.png`, en orden |
-| Capturas de tablet (opcional) | `screenshots/ipad-13/01.png` … `06.png` sirven también para tablet de 10" |
+| Imagen destacada | `graphics/<idioma>/play-feature-graphic-1024x500.png` |
+| Capturas de teléfono | `screenshots/<idioma>/android-phone/01.png` … `06.png`, en orden |
+| Capturas de tablet (opcional) | `screenshots/<idioma>/ipad-13/01.png` … `06.png` sirven también para tablet de 10" |
+| Inglés | Añade la traducción *English (United States)* con [`listing-en.md`](listing-en.md) y los recursos de `en/` |
 | Categoría | Deportes |
 | Correo de contacto | hola@clipeostats.com |
 | Sitio web | https://clipeostats.com |
-| Política de privacidad | https://clipeo-scoreboard.vercel.app/privacy.html |
+| Política de privacidad | Español: https://scoreboard.clipeostats.com/privacy?lang=es · Inglés: https://scoreboard.clipeostats.com/privacy?lang=en |
 
 **Contenido de la app (App content):**
 
@@ -148,5 +170,5 @@ All data is stored locally on the device.
 
 ## Pendiente
 
-- **La política de privacidad tiene que ser pública.** El proyecto de Vercel tiene activada la protección de despliegues (pide iniciar sesión), así que los revisores de Apple y Google no podrían abrir la URL. Opciones: desactivar la protección en Vercel (Project → Settings → Deployment Protection) o publicar el contenido de `public/privacy.html` en clipeostats.com y usar esa URL.
+- **La política de privacidad tiene que ser pública** en https://scoreboard.clipeostats.com/privacy. Requiere el dominio `scoreboard.clipeostats.com` en el proyecto de Vercel (Project → Settings → Domains) y su registro DNS (CNAME). Comprueba que se abre sin iniciar sesión: la protección de despliegues de Vercel no debe afectar al dominio de producción.
 - Revisar las capturas tras probar en móvil real: se generan desde la versión web, que es la misma interfaz, pero sin barra de estado del sistema.

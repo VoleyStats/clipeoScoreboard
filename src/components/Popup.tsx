@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { backdropIn, popIn } from '../motion';
+import { t } from '../i18n';
 import { C, F } from '../theme';
 
 interface Props {
@@ -20,11 +21,11 @@ export function Popup({ visible, title, onClose, children, footer, maxWidth = 52
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Animated.View entering={backdropIn} style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t.close} />
         <Animated.View entering={popIn} style={[styles.card, { maxWidth, maxHeight: height - 40 }]}>
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
-            <Pressable onPress={onClose} hitSlop={12} style={styles.close} accessibilityLabel="Cerrar">
+            <Pressable onPress={onClose} hitSlop={12} style={styles.close} accessibilityLabel={t.close}>
               <Text style={styles.closeText}>✕</Text>
             </Pressable>
           </View>

@@ -64,6 +64,10 @@ Cuando N > 1, bajo el número aparecen puntos que muestran el progreso de cada e
 
 Todo se guarda en el dispositivo; la pantalla no se apaga mientras el marcador está abierto.
 
+## Idiomas
+
+Español e inglés, según el idioma del dispositivo (en iOS también se puede elegir por app en Ajustes). Si el dispositivo no está en ninguno de los dos, inglés. Los textos están en `src/strings.ts` (los dos idiomas deben tener las mismas claves: lo comprueban los tests) y el idioma se elige en `src/i18n.ts`. Los nombres de equipos y modos por defecto se crean en el idioma del dispositivo y luego son editables.
+
 ## Animaciones
 
 Con [Reanimated](https://docs.swmansion.com/react-native-reanimated/) (iOS, Android y web con el mismo código; las animaciones corren en el hilo de UI y respetan el ajuste de «reducir movimiento» del sistema). Tokens en `src/motion.ts`.
@@ -123,8 +127,8 @@ Builds nativos para tiendas: `npx eas-cli@latest build -p ios|android`.
 Guía paso a paso, textos de las fichas (ES/EN), capturas, gráficos y respuestas a los cuestionarios en [`store/README.md`](store/README.md).
 
 - Builds y envío con EAS (`eas.json`): perfiles `development`, `preview` (APK / build interna) y `production`.
-- Política de privacidad: `public/privacy.html`, publicada en `/privacy.html` junto a la web.
-- Capturas: `npm run build:web && npm run store:assets` (requiere Playwright).
+- Política de privacidad: `public/privacy.html`, publicada en https://scoreboard.clipeostats.com/privacy junto a la web (`?lang=es` / `?lang=en`; sin parámetro, el idioma del navegador). La app la abre desde Ajustes en su idioma.
+- Capturas y gráficos (ES / EN, incluidos header y search result del App Store): `npm run build:web && npm run store:assets` (requiere Playwright).
 
 ## Estructura
 
@@ -138,6 +142,8 @@ src/useTapSwipe.ts           gesto tap / deslizar hacia abajo
 src/components/TeamPanel.tsx mitad de pantalla de cada equipo
 src/components/MainMenu.tsx   menú de iconos •••
 src/theme.ts                 paleta y tipografías de Clipeo
+src/strings.ts               textos de la interfaz (ES / EN)
+src/i18n.ts                  idioma del dispositivo y configuración por defecto traducida
 src/components/RulePicker.tsx selector de modo
 src/components/NewRuleModal.tsx popup para crear un modo
 src/components/RuleEditor.tsx campos de un modo

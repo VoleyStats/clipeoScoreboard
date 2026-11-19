@@ -6,9 +6,10 @@ import { Popup } from './Popup';
 import { RuleEditor, describeRule } from './RuleEditor';
 import { Btn, C } from './ui';
 import { F } from '../theme';
+import { t } from '../i18n';
 
 const blank = (): ScoringRule => ({
-  id: newRuleId(), name: 'Nuevo modo', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true,
+  id: newRuleId(), name: t.newRule, ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true,
   serveAfter: 1, serveConsecutive: true,
 });
 
@@ -27,13 +28,13 @@ export function NewRuleModal({ visible, onCreate: create, onClose: close }: Prop
   return (
     <Popup
       visible={visible}
-      title="Nuevo modo"
+      title={t.newRule}
       onClose={onClose}
       maxWidth={440}
       footer={
         <>
-          <Btn label="Cancelar" onPress={onClose} />
-          <Btn label="Crear y usar" kind="primary" onPress={() => onCreate({ ...rule, name: rule.name.trim() || 'Nuevo modo' })} />
+          <Btn label={t.cancel} onPress={onClose} />
+          <Btn label={t.createAndUse} kind="primary" onPress={() => onCreate({ ...rule, name: rule.name.trim() || t.newRule })} />
         </>
       }
     >

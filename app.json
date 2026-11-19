@@ -8,7 +8,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.voleystats.clipeoscoreboard",
+      "bundleIdentifier": "com.clipeostats.scoreboard",
       "icon": {
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png",
@@ -16,6 +16,12 @@
       },
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleLocalizations": [
+          "es",
+          "en"
+        ]
       }
     },
     "android": {
@@ -25,7 +31,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.voleystats.clipeoscoreboard",
+      "package": "com.clipeostats.scoreboard",
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -54,8 +60,29 @@
             "backgroundColor": "#111919"
           }
         }
+      ],
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "es",
+              "en"
+            ],
+            "android": [
+              "es",
+              "en"
+            ]
+          }
+        }
       ]
     ],
-    "description": "Marcador de voleibol minimalista: n\u00fameros a pantalla completa, gestos configurables y modos de puntuaci\u00f3n."
+    "description": "Marcador de voleibol minimalista: números a pantalla completa, gestos configurables y modos de puntuación.",
+    "extra": {
+      "eas": {
+        "projectId": "761fc5cf-e0ae-4631-a57c-91209955ee65"
+      }
+    },
+    "owner": "pauhdr"
   }
 }

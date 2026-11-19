@@ -11,6 +11,7 @@ import { type GestureHandlers, useGestures } from '../useTapSwipe';
 import { AnimatedNumber } from './AnimatedNumber';
 import type { Gesture, Team } from '../types';
 import { F } from '../theme';
+import { t } from '../i18n';
 
 interface Props {
   team: Team;
@@ -146,7 +147,7 @@ export function TeamPanel(p: Props) {
             style={styles.nameWrap}
             hitSlop={12}
             accessibilityRole={p.showServe ? 'button' : 'text'}
-            accessibilityLabel={p.showServe ? `${p.team.name}: elegir saque` : p.team.name}
+            accessibilityLabel={p.showServe ? t.chooseServe(p.team.name) : p.team.name}
             accessibilityState={{ selected: serveOn }}
           >
             {serveOn && !p.showSets && (
@@ -162,7 +163,7 @@ export function TeamPanel(p: Props) {
           <Animated.View
             {...setGestures}
             hitSlop={16}
-            accessibilityLabel={`Sets: ${p.sets}${serveOn ? ', saca' : ''}`}
+            accessibilityLabel={t.setsLabel(p.sets, serveOn)}
             style={[styles.sets, { borderColor: fg, minWidth: small * 2.4, height: small * 2.4, borderRadius: small * 1.2 }, setsStyle]}
           >
             <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: fg, borderRadius: small * 1.2 }, serveFill]} />

@@ -1,6 +1,7 @@
 import { type ComponentRef, type ReactNode, useRef, useState } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { t } from '../i18n';
 import { C, F } from '../theme';
 import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
@@ -98,7 +99,7 @@ export function Select<T extends string>({ label, hint, value, options, onChange
       </Pressable>
       <Modal visible={!!anchor} transparent animationType="none" onRequestClose={close} statusBarTranslucent
         supportedOrientations={['portrait', 'landscape']}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Cerrar lista" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel={t.closeList} />
         {menu && (
           <Animated.View entering={FadeIn.duration(120)} style={[s.options, menu]} accessibilityRole="radiogroup">
             <ScrollView bounces={false}>

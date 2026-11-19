@@ -7,4 +7,11 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
+  {
+    // Scripts de Node (no forman parte de la app)
+    files: ['scripts/**/*.{js,cjs,mjs}'],
+    languageOptions: {
+      globals: { __dirname: 'readonly', __filename: 'readonly', require: 'readonly', module: 'readonly', process: 'readonly', console: 'readonly' },
+    },
+  },
 ]);

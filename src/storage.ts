@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DEFAULT_CONFIG, initialState, migrateConfig, reconcile } from './logic';
+import { DEFAULTS as DEFAULT_CONFIG } from './i18n';
+import { initialState, migrateConfig, reconcile } from './logic';
 import type { Config, MatchState } from './types';
 
 const CONFIG_KEY = 'clipeo.config.v1';

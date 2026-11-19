@@ -1,6 +1,7 @@
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
-import { DEFAULT_CONFIG, GESTURES, gestureRules, newRuleId, resolveAction } from '../logic';
-import type { Config, Gesture, GestureAction, ScoringRule, Team, TeamId } from '../types';
+import { DEFAULTS, lang, t } from '../i18n';
+import { GESTURES, gestureRules, newRuleId, resolveAction } from '../logic';
+import type { Config, GestureAction, ScoringRule, Team, TeamId } from '../types';
 import { F } from '../theme';
 import { Popup } from './Popup';
 import { RuleEditor, describeRule } from './RuleEditor';
@@ -13,14 +14,8 @@ interface Props {
   onClose: () => void;
 }
 
-export const PRIVACY_URL = 'https://clipeo-scoreboard.vercel.app/privacy.html';
-
-const GESTURE_LABELS: Record<Gesture, { label: string; hint: string }> = {
-  tap: { label: 'Tocar', hint: 'Un toque corto' },
-  longPress: { label: 'Mantener pulsado', hint: 'Medio segundo sin mover el dedo' },
-  swipeDown: { label: 'Deslizar hacia abajo', hint: 'Arrastrar el dedo hacia abajo' },
-  swipeUp: { label: 'Deslizar hacia arriba', hint: 'Arrastrar el dedo hacia arriba' },
-};
+/** Política de privacidad publicada con la web (vercel.json), en el idioma de la app. */
+export const PRIVACY_URL = `https://scoreboard.clipeostats.com/privacy?lang=${lang}`;
 
 export function SettingsModal({ visible, config, onChange, onClose }: Props) {
   const set = <K extends keyof Config>(k: K, v: Config[K]) => onChange({ ...config, [k]: v });
@@ -31,71 +26,69 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
   const addRule = () =>
     set('rules', [
       ...config.rules,
-      { id: newRuleId(), name: 'Nuevo modo', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true, serveAfter: 1, serveConsecutive: true },
+      { id: newRuleId(), name: t.newRule, ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true, serveAfter: 1, serveConsecutive: true },
     ]);
   const removeRule = (id: string) => set('rules', config.rules.filter((r) => r.id !== id));
 
   return (
     <Popup
       visible={visible}
-      title="Ajustes"
+      title={t.settings}
       onClose={onClose}
-      footer={<Btn label="Listo" kind="primary" onPress={onClose} />}
+      footer={<Btn label={t.done} kind="primary" onPress={onClose} />}
     >
       {(['a', 'b'] as TeamId[]).map((id) => (
-        <Section key={id} title={id === 'a' ? 'Equipo 1' : 'Equipo 2'}>
-          <Row label="Nombre">
+        <Section key={id} title={t.team(id === 'a' ? 1 : 2)}>
+          <Row label={t.name}>
             <Field value={config.teams[id].name} onChange={(name) => setTeam(id, { name })} />
           </Row>
-          <ColorPicker label="Fondo" value={config.teams[id].bg} onChange={(bg) => setTeam(id, { bg })} />
-          <ColorPicker label="Texto" value={config.teams[id].fg} onChange={(fg) => setTeam(id, { fg })} />
+          <ColorPicker label={t.background} value={config.teams[id].bg} onChange={(bg) => setTeam(id, { bg })} />
+          <ColorPicker label={t.text} value={config.teams[id].fg} onChange={(fg) => setTeam(id, { fg })} />
         </Section>
       ))}
 
-      <Section title="Modos de puntuación">
-        <Text style={styles.help}>
-          Cada modo define cuántas jugadas hay que ganar y cuántos puntos suma. El primero es el modo por defecto.
-        </Text>
+      <Section title={t.scoringModes}>
+        <Text style={styles.help}>{t.scoringModesHelp}</Text>
         {config.rules.map((r, i) => (
           <View key={r.id} style={styles.rule}>
-            <Row label={i === 0 ? 'Por defecto' : `Modo ${i + 1}`} hint={describeRule(r)}>
+            <Row label={i === 0 ? t.defaultRule : t.ruleN(i + 1)} hint={describeRule(r)}>
               {i > 0 && <Btn small label="✕" kind="danger" onPress={() => removeRule(r.id)} />}
             </Row>
             <RuleEditor rule={r} isDefault={i === 0} onChange={(p) => setRule(r.id, p)} />
           </View>
         ))}
         <View style={{ paddingVertical: 10 }}>
-          <Btn label="+ Nuevo modo" onPress={addRule} />
+          <Btn label={t.createRule} onPress={addRule} />
         </View>
       </Section>
 
-      <Section title="Sets">
-        <Toggle label="Mostrar sets" value={config.showSets} onChange={(v) => set('showSets', v)} />
+      <Section title={t.sets}>
+        <Toggle label={t.showSets} value={config.showSets} onChange={(v) => set('showSets', v)} />
         <Toggle
-          label="Reiniciar puntos al sumar set"
+          label={t.resetPointsOnSet}
           value={config.resetPointsOnSet}
           onChange={(v) => set('resetPointsOnSet', v)}
         />
       </Section>
 
-      <Section title="Final de set">
+      <Section title={t.setEnd}>
         <Toggle
-          label="Final de set automático"
-          hint={config.autoSets ? 'El set se suma solo al llegar a los puntos' : 'Desactivado: los sets se suman a mano'}
+          label={t.autoSets}
+          hint={config.autoSets ? t.autoSetsOn : t.autoSetsOff}
           value={config.autoSets}
           onChange={(v) => set('autoSets', v)}
         />
         {config.autoSets && (
           <>
             <NumberPicker
-              label="Puntos para ganar el set"
+              label={t.pointsPerSet}
               value={config.pointsPerSet}
               onChange={(v) => set('pointsPerSet', v)}
               presets={[15, 21, 25]}
             />
             <Toggle
-              label="Ganar por 2 de diferencia"
-              hint={config.winByTwo ? `Con ${config.pointsPerSet - 1} iguales se sigue jugando` : 'Gana quien llegue primero'}
+              label={t.winByTwo}
+              hint={config.winByTwo ? t.winByTwoOn(config.pointsPerSet - 1) : t.winByTwoOff}
               value={config.winByTwo}
               onChange={(v) => set('winByTwo', v)}
             />
@@ -103,18 +96,18 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
         )}
       </Section>
 
-      <Section title="Final de partido">
+      <Section title={t.matchEnd}>
         <Toggle
-          label="Final de partido"
-          hint={config.matchEnd ? 'Marca el ganador al llegar a los sets' : 'Desactivado: sin límite de sets'}
+          label={t.matchEnd}
+          hint={config.matchEnd ? t.matchEndOn : t.matchEndOff}
           value={config.matchEnd}
           onChange={(v) => set('matchEnd', v)}
         />
         {config.matchEnd && (
           <>
             <NumberPicker
-              label="Sets para ganar"
-              hint={`Al mejor de ${config.setsToWin * 2 - 1} ${config.setsToWin === 1 ? 'set' : 'sets'}`}
+              label={t.setsToWin}
+              hint={t.bestOf(config.setsToWin * 2 - 1)}
               value={config.setsToWin}
               onChange={(v) => set('setsToWin', v)}
               presets={[1, 2, 3]}
@@ -122,8 +115,8 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
             />
             {config.autoSets && config.setsToWin > 1 && (
               <NumberPicker
-                label="Puntos del set decisivo"
-                hint={`El ${config.setsToWin * 2 - 1}º set`}
+                label={t.decidingSetPoints}
+                hint={t.nthSet(config.setsToWin * 2 - 1)}
                 value={config.decidingSetPoints}
                 onChange={(v) => set('decidingSetPoints', v)}
                 presets={[15, 21, 25]}
@@ -133,39 +126,36 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
         )}
       </Section>
 
-      <Section title="Pantalla">
-        <Toggle label="Mostrar nombres" value={config.showNames} onChange={(v) => set('showNames', v)} />
+      <Section title={t.display}>
+        <Toggle label={t.showNames} value={config.showNames} onChange={(v) => set('showNames', v)} />
         <Toggle
-          label="Marcar quién saca"
-          hint="El círculo de sets del equipo que saca se pinta en negativo. Toca un nombre para elegir quién saca."
+          label={t.showServe}
+          hint={t.showServeHint}
           value={config.showServe}
           onChange={(v) => set('showServe', v)}
         />
         {Platform.OS !== 'web' && (
-          <Toggle label="Vibración" value={config.haptics} onChange={(v) => set('haptics', v)} />
+          <Toggle label={t.haptics} value={config.haptics} onChange={(v) => set('haptics', v)} />
         )}
       </Section>
 
-      <Section title="Gestos">
-        <Text style={styles.help}>
-          Elige qué hace cada gesto sobre el marcador de un equipo. Los modos de 1 jugada se aplican una sola vez
-          sin cambiar el modo activo. El círculo de sets siempre suma al tocar y resta al deslizar hacia abajo.
-        </Text>
+      <Section title={t.gestures}>
+        <Text style={styles.help}>{t.gesturesHelp}</Text>
         {GESTURES.map((g) => {
           const resolved = resolveAction(config, config.gestures[g]);
           const current: GestureAction = resolved.kind === 'rule' ? `rule:${resolved.rule.id}` : resolved.kind;
           const options: { value: GestureAction; label: string }[] = [
-            { value: 'point', label: 'Sumar' },
+            { value: 'point', label: t.actionPoint },
             ...gestureRules(config).map((r) => ({ value: `rule:${r.id}` as GestureAction, label: r.name })),
-            { value: 'minus', label: 'Restar 1' },
-            { value: 'undo', label: 'Deshacer' },
-            { value: 'none', label: 'Nada' },
+            { value: 'minus', label: t.actionMinus },
+            { value: 'undo', label: t.actionUndo },
+            { value: 'none', label: t.actionNone },
           ];
           return (
             <View key={g} style={styles.gesture}>
               <Select
-                label={GESTURE_LABELS[g].label}
-                hint={GESTURE_LABELS[g].hint}
+                label={t.gesture[g].label}
+                hint={t.gesture[g].hint}
                 value={current}
                 options={options}
                 onChange={(v) => set('gestures', { ...config.gestures, [g]: v })}
@@ -174,21 +164,21 @@ export function SettingsModal({ visible, config, onChange, onClose }: Props) {
           );
         })}
         {!GESTURES.some((g) => ['minus', 'undo'].includes(resolveAction(config, config.gestures[g]).kind)) && (
-          <Text style={styles.warn}>Ningún gesto resta puntos. Puedes deshacer desde el menú •••.</Text>
+          <Text style={styles.warn}>{t.warnNoMinus}</Text>
         )}
         {resolveAction(config, config.gestures.tap).kind === 'none' && (
-          <Text style={styles.warn}>Tocar no hace nada: el marcador solo responderá a los otros gestos.</Text>
+          <Text style={styles.warn}>{t.warnTapNone}</Text>
         )}
       </Section>
 
-      <Btn label="Restaurar ajustes por defecto" kind="danger" onPress={() => onChange(DEFAULT_CONFIG)} />
+      <Btn label={t.restoreDefaults} kind="danger" onPress={() => onChange(DEFAULTS)} />
 
       <Text
         style={styles.link}
         accessibilityRole="link"
         onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})}
       >
-        Política de privacidad
+        {t.privacy}
       </Text>
     </Popup>
   );

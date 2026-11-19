@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated from 'react-native-reanimated';
 import { backdropIn, popIn, staggerIn } from '../motion';
+import { t } from '../i18n';
 import { C, F } from '../theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -43,19 +44,19 @@ export function MainMenu({ visible, onClose: closeMenu, onCloseSet, onNewMatch, 
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} supportedOrientations={['portrait', 'landscape']}>
       <Animated.View entering={backdropIn} style={styles.fill}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        {confirmMatch && <Animated.Text entering={popIn} style={styles.confirm}>Toca otra vez para empezar un partido nuevo</Animated.Text>}
+        {confirmMatch && <Animated.Text entering={popIn} style={styles.confirm}>{t.confirmNewMatchHint}</Animated.Text>}
         <Animated.View entering={popIn} style={styles.bar} onStartShouldSetResponder={() => true}>
-          {item(0, 'arrow-undo', 'Deshacer', () => { onUndo(); onClose(); }, 'default', !canUndo)}
-          {item(1, 'refresh', 'Reiniciar puntos (suma 1 set al que va ganando)', () => { onCloseSet(); onClose(); })}
+          {item(0, 'arrow-undo', t.undo, () => { onUndo(); onClose(); }, 'default', !canUndo)}
+          {item(1, 'refresh', t.resetPoints, () => { onCloseSet(); onClose(); })}
           {item(
             2,
             confirmMatch ? 'checkmark' : 'trash-outline',
-            confirmMatch ? 'Confirmar nuevo partido' : 'Nuevo partido',
+            confirmMatch ? t.confirmNewMatch : t.newMatch,
             () => (confirmMatch ? (onNewMatch(), onClose()) : setConfirmMatch(true)),
             confirmMatch ? 'danger' : 'default',
           )}
-          {item(3, 'swap-horizontal', 'Cambiar lados', () => { onSwap(); onClose(); })}
-          {item(4, 'settings-outline', 'Ajustes', () => { onClose(); onSettings(); })}
+          {item(3, 'swap-horizontal', t.switchSides, () => { onSwap(); onClose(); })}
+          {item(4, 'settings-outline', t.settings, () => { onClose(); onSettings(); })}
         </Animated.View>
       </Pressable>
       </Animated.View>

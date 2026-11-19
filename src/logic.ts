@@ -1,23 +1,28 @@
+import { STRINGS, type Lang } from './strings';
 import type { Config, Gesture, GestureAction, MatchState, ScoringRule, TeamId } from './types';
 
 export const other = (t: TeamId): TeamId => (t === 'a' ? 'b' : 'a');
 
-export const DEFAULT_RULES: ScoringRule[] = [
-  { id: 'normal', name: 'Normal', ralliesRequired: 1, pointsAwarded: 1, consecutive: false, once: false },
-  { id: 'double', name: 'Punto doble', ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true },
-  { id: 'three-for-one', name: '3 seguidas = 1', ralliesRequired: 3, pointsAwarded: 1, consecutive: true, once: false },
-  {
-    id: 'serve-two', name: 'Saque tras 2', ralliesRequired: 1, pointsAwarded: 1, consecutive: false, once: false,
-    serveAfter: 2, serveConsecutive: true,
-  },
-];
+/** Modos incluidos, con el nombre en el idioma indicado (el nombre se guarda y es editable). */
+export const defaultRules = (lang: Lang): ScoringRule[] => {
+  const s = STRINGS[lang];
+  return [
+    { id: 'normal', name: s.ruleNormal, ralliesRequired: 1, pointsAwarded: 1, consecutive: false, once: false },
+    { id: 'double', name: s.ruleDouble, ralliesRequired: 1, pointsAwarded: 2, consecutive: false, once: true },
+    { id: 'three-for-one', name: s.ruleThreeForOne, ralliesRequired: 3, pointsAwarded: 1, consecutive: true, once: false },
+    {
+      id: 'serve-two', name: s.ruleServeTwo, ralliesRequired: 1, pointsAwarded: 1, consecutive: false, once: false,
+      serveAfter: 2, serveConsecutive: true,
+    },
+  ];
+};
 
-export const DEFAULT_CONFIG: Config = {
+export const defaultConfig = (lang: Lang): Config => ({
   teams: {
-    a: { name: 'Local', bg: '#111111', fg: '#FFFFFF' },
-    b: { name: 'Visitante', bg: '#E63946', fg: '#FFFFFF' },
+    a: { name: STRINGS[lang].teamA, bg: '#111111', fg: '#FFFFFF' },
+    b: { name: STRINGS[lang].teamB, bg: '#E63946', fg: '#FFFFFF' },
   },
-  rules: DEFAULT_RULES,
+  rules: defaultRules(lang),
   gestures: { tap: 'point', longPress: 'rule:double', swipeDown: 'minus', swipeUp: 'none' },
   showNames: true,
   showServe: true,
@@ -30,7 +35,11 @@ export const DEFAULT_CONFIG: Config = {
   matchEnd: false,
   setsToWin: 3,
   decidingSetPoints: 15,
-};
+});
+
+/** Configuración por defecto en español (la app usa la del idioma del dispositivo: `DEFAULTS` en i18n.ts). */
+export const DEFAULT_CONFIG: Config = defaultConfig('es');
+export const DEFAULT_RULES = DEFAULT_CONFIG.rules;
 
 export const initialState = (config: Config): MatchState => ({
   points: { a: 0, b: 0 },
